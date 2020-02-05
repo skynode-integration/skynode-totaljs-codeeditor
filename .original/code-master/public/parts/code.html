@@ -1,0 +1,2547 @@
+<div id="panel">
+	<section class="project exec" data-exec="code/projects" data-bind="!code.data__html b:value.name__title:value.name"><i class="fa fa-caret-down"></i><b>@(Choose project)</b></section>
+	<div class="panel-scroller fullheight noscrollbar" data-margin="36">
+		<div data-bind="common.recent__template__|__code.data__hide" class="hidden">
+			<script type="text/html">
+				{{ foreach m in value }}
+				<div data-id="{{ m.id }}" class="recent exec" data-exec="code/loadproject"><i class="fa fa-code-branch mr5"></i>{{ m.name }}</div>
+				{{ end }}
+			</script>
+		</div>
+		<div data-bind="code.data__show" data---="tree__code.tree__exec:code/open;options:code/options;rename:code/rename;first:false;upload:code/upload;pk:path;extrabutton:code/templates;extralabel:@(Download template)" class="hidden"></div>
+	</div>
+	<section class="status invisible" data-bind="code.data__invisible:!value">
+		<button title="@(Create file)" class="exec" data-name="file" data-exec="code/statusform"><i class="far fa-file-text-o"></i></button>
+		<button title="@(Create folder)" class="exec" data-name="directory" data-exec="code/statusform"><i class="far fa-folder"></i></button>
+		<button title="@(Refresh directories and files)" class="exec" data-exec="code/refresh"><i class="fa fa-refresh"></i></button>
+		<button title="@(Time spent)" class="exec" data-exec="code/timespent"><i class="far fa-calendar"></i></button>
+		<button title="@(All tracked changes)" class="exec" data-exec="code/changes"><i class="fa fa-history"></i></button>
+		<button title="@(Users)" class="exec" data-name="directory" data-exec="code/usersonline"><i class="fa fa-users"></i></button>
+	</section>
+</div>
+
+<div id="clipboard" class="hidden" data-bind="common.clipboard__show">
+	<div class="titlebar"><i class="fa fa-times exec" data-exec="code/clipboard"></i><i class="fa fa-clipboard"></i>@(Clipboard)</div>
+	<textarea id="clipboardbody" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+</div>
+
+<div id="realtimewindow" data-bind="common.debug__show" class="hidden">
+	<div class="titlebar"><i class="fa fa-times exec" data-exec="code/debug" title="@(Close log)"></i><i class="fa fa-trash exec" data-exec="code/debugclear" title="@(Truncate log)"></i><i class="fa fa-pulse fa-spinner"></i>@(Logs)</div>
+	<div class="body-scrollbar">
+		<div id="realtimewindowbody" class="body"></div>
+	</div>
+</div>
+
+<div id="currentcolor" class="hidden"><span>B</span><span>W</span></div>
+
+<div id="combo" data---="combo__editor.combo" data-bind="code.editor.path__show:code/showcombo" class="hidden" title="@(Scoreboard for the project)">
+	<div class="info">
+		<div>@(COMBO)</div>
+		<b>0</b>
+		<div class="progress"></div>
+	</div>
+	<div class="rating"></div>
+</div>
+
+<div id="body">
+	<section class="tabs">
+		<a data-bind="code.data.url__href__show" target="_blank" class="preview" title="@(Preview)"><i class="fa fa-globe"></i></a>
+		<span class="options exec hidden" data-bind="code.editor__show" data-exec="code/options_editor"><i class="fa fa-cog"></i></span>
+		<nav data---="tabmenu__code.editor.path__datasource:code.open;selector:span;exec:code/opentab;reorder:code/savetabs">
+			<script type="text/html">
+				<span data-value="{{ path }}" class="{{ if !skip }}nolocked{{ fi }}{{ if modified }} modified{{ fi }}" title="{{ path }}"><i class="fa exec" data-exec="code/close"></i>{{ name }}</span>
+			</script>
+		</nav>
+	</section>
+	<div data-bind="code.editor.path__visible" class="invisible">
+		<div class="search">
+			<span><i class="fa fa-search"></i>@(Search)</span>
+			<nav>
+				<button name="prev" disabled="disabled" title="@(Previous result)"><i class="fa fa-angle-up"></i></button>
+				<button name="next" disabled="disabled" title="@(Next result)"><i class="fa fa-angle-down"></i></button>
+			</nav>
+			<div><input type="text" maxlength="100" placeholder="@(Type to search and press enter)" /></div>
+		</div>
+	</div>
+	<div id="content" data-margin="36">
+		<div class="alert-saved hidden exec" data-bind="code.saved__show__html b" data-exec="code/syncsave"><i class="fa fa-warning"></i><b></b> @(has replaced content of this file on the server.)</div>
+		<div data-bind="code.editor.path__show" class="codeeditor">
+			<div data---="editor__code.editor.body__height:100%;pk:path;change:code/modified;shortcut:code/shortcut;contextmenu:code/contextmenu;cursor:code/cursorposition;sync:code/sync;todo:code/todo;components:code/components;combo:code/combo"></div>
+		</div>
+		<div class="messages">
+			<div class="alert hidden" data-bind="code.backup__show" data-name="backup"><i class="fa fa-times exec" data-exec="code/warning"></i><i class="fa fa-warning"></i>@(The content of this file wasn't saved before. Do you want to restore it?) <span class="link exec" data-name="restore" data-exec="code/warning">@(Restore)</span> @(or) <span class="link exec" data-exec="code/warning">@(Cancel)</span>.</div>
+			<div class="alert hidden" data-bind="code.multiple__show" data-name="multiple" style="z-index:1001"><i class="fa fa-times exec" data-exec="code/warning"></i><i class="fa fa-users"></i>@(Be careful because another user is editing content of this file.) <span class="link exec b ml5" data-exec="code/syncdata"><i class="fa fa-refresh fa-spin mr5"></i>@(Synchronize)</span> @(or) <span class="link exec" data-exec="code/warning">@(Cancel)</span>.</div>
+		</div>
+	</div>
+	<section class="status invisible" data-bind="code.data__invisible:!value">
+		<div data-bind="code.usersproject__template" class="status-collaborators">
+			<script type="text/html">
+				{{ foreach m in value }}
+					{{ m.name | initials }}
+				{{ end }}
+			</script>
+		</div>
+		<div data-bind="code.errors__html b:value?value.length:0__.red:value && value.length>0" class="status-alerts exec" data-exec="code/warnings">
+			<i class="fa fa-warning"></i><b>0</b>
+		</div>
+		<div class="status-diff" data-bind="code.current.changes__disabled button:!value||!value.length__click button:code/diff__text b:value?value.length:0">
+			<button name="prev" title="@(Previous change)"><i class="fa fa-chevron-left"></i></button>
+			<span title="@(Count of changed lines)"><i class="fa fa-plus green"></i><b>0</b></span>
+			<button name="next" title="@(Next change)"><i class="fa fa-chevron-right"></i></button>
+		</div>
+		<div class="status-modified exec" data-bind="code.current.lastmodified__template__show" data-path="common.form" data-value="'backups'">
+			<script type="text/html">
+				{{ if value }}
+					{{ value.user | initials }}
+				 	<div><i class="fa fa-history"></i><b title="{{ value.updated | format('[date]') }}" class="time" data-time="{{ value.updated | utc }}">{{ value.updated | time }}</b></div>
+				{{ fi }}
+			</script>
+		</div>
+		<div class="status-info" data-bind="code.cursor__html:code/statusinfo" title="@(Line : Char index : Selected chars)"></div>
+	</section>
+</div>
+
+<div data---="statusform__code.statusform.name__exec:code/statusform" class="statusform hidden">
+	<div class="statusform-item hidden" data-name="file">
+		<input type="text" placeholder="@(Enter relative filename.js)" />
+	</div>
+	<div class="statusform-item hidden" data-name="directory">
+		<input type="text" placeholder="@(Enter relative folder name)" />
+	</div>
+	<div class="statusform-item hidden" data-name="commit">
+		<input type="text" placeholder="@(Describe changes for this file)" />
+	</div>
+</div>
+
+<div class="collaborators" data-bind="code.editor.path__show .onlyopen__|__code.data__show">
+	<div class="tools">
+		<a data-bind="code.data.id__href:'/pause/?url=' + encodeURIComponent('/?id=' + (value || ''))" title="@(Pause / Time to Relax)" class="red pause"><i class="fa fa-pause"></i></a>
+		<span title="@(To-Do list)" class="exec" data-path="common.form" data-value="'tasks'"><b class="uncomplete" data-bind="code.data.todo --> code/codetasks_unsolved__show__html"></b><i class="fa fa-tasks"></i></span>
+		<span title="@(Code review)" data-bind="code.editor.path__show" class="hidden exec review onlyopen" data-exec="code/review"><i class="fa fa-check"></i></span>
+	</div>
+	<section data-bind="code.usersfile__template" class="onlyopen">
+		<script type="text/html">
+			{{ foreach m in value }}
+				{{ m.name | initials }}
+			{{ end }}
+		</script>
+	</section>
+</div>
+
+<div data---="importer__common.form__if:tasks;url:/forms/tasks.html"></div>
+<div data---="importer__common.form__if:backups;url:/forms/backups.html"></div>
+<div data---="importer__common.form__if:changes;url:/forms/changes.html"></div>
+<div data---="importer__common.form__if:componentator;url:/forms/componentator.html"></div>
+<div data---="importer__common.form__if:components;url:/forms/components.html"></div>
+<div data---="importer__common.form__if:snippets;url:/forms/snippets.html"></div>
+<div data---="importer__common.form__if:snippets;url:/forms/snippets.html"></div>
+<div data---="importer__common.form__if:icons;url:/forms/icons.html"></div>
+<div data---="importer__common.form__if:output;url:/forms/output.html"></div>
+<div data---="importer__common.form__if:timespentform;url:/forms/timespent.html"></div>
+
+<script>
+
+	var code = { SYNC: false, changes: {}, NOTRIM: { nosql: 1, table: 1, todo: 1, issyncing: false }};
+
+	PLUGIN('code', function(exports) {
+
+		code.cursor = { TYPE: 'synccur', id: user.id, connid: common.id };
+
+		var editor;
+		var cache_scrollpos = {};
+		var reg_number = /^\d+$/;
+		var maxtyping = 0;
+		var combo = null;
+
+		FIND('editor', function(com) {
+			exports.editor = editor = com;
+		});
+
+		FIND('combo', function(com) {
+			combo = com;
+		});
+
+		exports.showcombo = function(value) {
+			return !!value && !!common.powermode;
+		};
+
+		exports.combo = function() {
+
+			var old = code.lastchange;
+			code.lastchange = Date.now();
+
+			if (old) {
+				old = code.lastchange - old;
+				if (old && old < 150) {
+					if (maxtyping++ > 15)
+						return;
+				} else if (old > 1000) // 1 second delay
+					maxtyping = 0;
+			}
+
+			common.powermode && combo && combo.combo();
+		};
+
+		exports.refresh = function(callback) {
+			exports.load(code.data.id, true, callback);
+		};
+
+		exports.messenger = function() {
+			var obj = {};
+			obj.id = 'messenger';
+			obj.offset = { x: 600, y: 300, width: 600, height: 400, minwidth: 200, minheight: 200 };
+			obj.title = '@(Messenger)';
+			var meta = $.param({ token: common.token, nick: user.name, position: user.position, darkmode: $(document.body).hclass('td') ? 1 : 0, reference: user.id, source: location.hostname });
+			obj.html = '<div class="messenger"><{1} src="{0}" frameborder="0" scrolling="no" allowtransparency="true" allow="geolocation *; microphone *; camera *; midi *; encrypted-media *"></{1}></div>'.format('https://support.totaljs.com/?' + meta, common.electron ? 'webview' : 'iframe');
+			obj.actions = { minimize: true, maximize: false, move: true, resize: true, close: true, autosave: true };
+			PUSH('windows', obj);
+		};
+
+		exports.statusinfo = function(value) {
+			var sel = ((value.tch || 0) - (value.fch || 0));
+			var plus = '';
+
+			if (sel && editor) {
+				var text = editor.editor.getSelection();
+				var l = text.length - 1;
+				plus = text.charAt(l) + ' = <code>{0}</code>'.format(text.charCodeAt(l));
+				if (reg_number.test(text) && (+text) > 32)
+					plus += (plus ? ' &nbsp; ' : '') + text + ' = <code>{0}</code>'.format(String.fromCharCode(text));
+			}
+
+			return ((value.fline || 0) + 1) + ':' + (value.fch || 0) + (value.fline === value.tline ? (':' + sel) : '') + (plus ? (' &nbsp; ' + plus) : '');
+		};
+
+		exports.components = function(components) {
+
+			var is = components.length > 0;
+			var checksum = HASH(components);
+			if (checksum === code.componentschecksum)
+				return;
+
+			code.componentschecksum = checksum;
+			SET('code.components', components);
+
+			if (is && !common.form && code.current && !code.current.$components && common.showparts) {
+				SET('common.form', 'components');
+				code.current.$components = 0;
+				clipboardresize();
+			}
+		};
+
+		exports.debug = function() {
+			TOGGLE('common.debug');
+		};
+
+		exports.debugclear = function() {
+			if (!BLOCKED('debugclear', 3000))
+				AJAX('GET /api/projects/{id}/logfile/clear/'.arg(code.data), NOOP);
+		};
+
+		exports.localize = function() {
+			SETTER('loading', 'show');
+			AJAX('GET /api/projects/{id}/localize/'.arg(code.data), function() {
+				EXEC('code/refresh', function() {
+					exports.element.SETTER('tree', 'selectpath', '/localization.resource');
+				});
+			});
+		};
+
+		function watchlogfile() {
+			var thread = code.current && code.current.path ? code.current.path.match(/\/threads\/\w+/) : null;
+			AJAX(('GET /api/projects/{id}/logfile/' + (thread ? '?thread=' + thread.toString().substring(9) : '')).arg(code.data), function(response) {
+				common.debug && setTimeout(watchlogfile, 1500);
+				if (response !== common.debugprev) {
+					common.debugprev = response;
+					var el = $('#realtimewindowbody').html(Thelpers.encode(response).replace(/\n/g, '<br />'));
+					el[0].scrollTop = el[0].scrollHeight || 0;
+				}
+			});
+		}
+
+		WATCH('common.debug', function(path, value) {
+			value && watchlogfile();
+		});
+
+		WATCH('common.form', function(path, value) {
+			if (value === '' && code.current)
+				code.current.$components = 1;
+			setTimeout(clipboardresize, 500);
+		});
+
+		exports.todo = function(todo) {
+
+			if (!code.data || !code.editor.path)
+				return;
+
+			var item = code.data.todo.findItem('path', code.editor.path);
+			if (item == null) {
+				item = { path: code.editor.path, items: [] };
+				code.data.todo.push(item);
+			}
+
+			if (todo.length)
+				item.items = todo;
+			else
+				code.data.todo = code.data.todo.remove('path', code.editor.path);
+
+			SET('code.data.todocurrent', todo);
+			UPD('code.data.todo');
+		};
+
+		exports.codetasks_unsolved = function(value) {
+			var count = 0;
+			if (code.data && code.data.todo) {
+				for (var i = 0; i < code.data.todo.length; i++)
+					count += code.data.todo[i].items.length;
+			}
+			return count > 99 ? 99 : count;
+		};
+
+		exports.append = function(val) {
+			editor.editor.replaceSelection(val + '\n');
+		};
+
+		exports.appendcustom = function(fn) {
+			var cur = editor.editor.getCursor();
+			var c = editor.editor.getRange({ line: cur.line, ch: cur.ch - 1 }, { line: cur.line, ch: cur.ch });
+			fn(editor.editor, cur, c);
+		};
+
+		exports.move = function(line, ch, lineto) {
+			var e = editor.editor;
+
+			var cur = e.getCursor();
+			e.setCursor({ line: line || 0, ch: ch || 0 });
+			e.centerLine(line);
+			e.focus();
+
+			if (lineto && line === cur.line)
+				e.setSelection(e.getCursor(), { line: lineto });
+		};
+
+		exports.syncdata = function() {
+
+			var min;
+			exports.readonly(true);
+
+			for (var i = 0; i < code.usersfile.length; i++) {
+				var usr = code.usersfile[i];
+
+				if (usr.connid === common.id)
+					continue;
+
+				if (!min) {
+					min = usr;
+					continue;
+				}
+
+				if (min.ts && usr.ts && min.ts > usr.ts)
+					min = usr;
+			}
+
+			if (min) {
+				SET('code.multiple', false);
+				SETTER('loading', 'show');
+				FUNC.wssend({ TYPE: 'syncsend', projectid: code.projectid, connid: common.id, fromid: min.id });
+				common.synctimeout = setTimeout(function() {
+					// 5 seconds
+					// Maybe zombie connection
+					SETTER('loading', 'hide');
+					common.synctimeout = null;
+					$('#body').rclass('warning');
+					FUNC.warning('@(Unable to synchronize code between users, because the main user may be offline.)');
+					code.issyncing = false;
+					exports.readonly(false);
+				}, 5000);
+			}
+
+			exports.tablocked();
+		};
+
+		exports.syncsave = function(msg) {
+
+			var p = 'code.saved';
+
+			if (msg && msg.projectid === code.projectid)
+				setTimeout(exports.changelog, 2000);
+
+			if (!msg || msg instanceof jQuery || msg.connid === common.id || msg.id === user.id) {
+				SET(p, null);
+				return;
+			}
+
+			if (msg.projectid === code.projectid) {
+
+				// Remove tab changes indicator
+				if (code.SYNC && code.current && code.current.modified) {
+					code.current.modified = false;
+					exports.element.find('section.tabs').find('span[data-value="{0}"]'.format(code.current.path)).rclass('modified');
+				}
+
+				editor.diffgutterclear();
+
+				SET(p, msg.user);
+				setTimeout2(p, function() {
+					SET(p, null);
+				}, 5000);
+			}
+		};
+
+		exports.readonly = function(value) {
+			FIND('editor').editor.setOption('readOnly', value);
+		};
+
+		exports.synccursor = function(msg) {
+			for (var i = 0; i < code.usersfile.length; i++) {
+				var uf = code.usersfile[i];
+				if (uf.connid === msg.connid) {
+					editor.marker(uf.connid, msg.fline, msg.fch, msg.tline, msg.tch, uf.color, uf.id);
+					return;
+				}
+			}
+		};
+
+		exports.reload = function() {
+
+			EMIT('resize', exports.element);
+
+			var id = NAV.query.id;
+			id && exports.load(id);
+
+			SET('%projectsvisible', false);
+
+			AJAX('GET /api/projects/', function(response) {
+
+				response.quicksort('name');
+				SET('code.projects', response);
+
+				var index = 0;
+				var isrecent = false;
+
+				while (true) {
+					var recent = common.recent[index];
+					if (!recent)
+						break;
+					var project = response.findItem('id', recent.id);
+					if (project == null) {
+						isrecent = true;
+						common.recent.splice(index - 1, 1);
+					} else {
+						if (recent.name !== project.name) {
+							isrecent = true;
+							recent.name = project.name;
+						}
+						index++;
+					}
+				}
+
+				isrecent && UPD('common.recent');
+
+				var keys = Object.keys(localStorage);
+				var projects = {};
+
+				// Clears cache
+				for (var i = 0; i < response.length; i++)
+					projects[code.projects[i].id] = 1;
+
+				for (var i = 0; i < keys.length; i++) {
+					var id = keys[i].substring(0, keys[i].indexOf('_'));
+					if (id && id.length > 15 && !projects[id])
+						localStorage.removeItem(keys[i]);
+				}
+
+				// Clipboard
+				AJAX('GET /api/clipboard/', function(response) {
+					$('#clipboardbody').val(response);
+				});
+
+			});
+		};
+
+		exports.templates = function() {
+			SET('common.form', 'templates');
+		};
+
+		exports.changes = function() {
+			SET('common.form', 'changes');
+		};
+
+		exports.contextmenu = function(e, editor) {
+
+			var items = [];
+			var sel = editor.getSelections();
+			var text = sel.join('');
+			var can = text.length > 0;
+			var sub = [];
+			var tmp;
+
+			if (code.current.path.indexOf('/scripts/') !== -1)
+				items.push({ name: '@(Run script)', icon: 'play-circle red', value: 'run' });
+
+			if (can) {
+
+				if ((/api/).test(code.current.ext))
+					items.push({ name: '@(Run)', icon: 'play-circle red', value: 'run' });
+
+				items.push({ name: '@(Copy)', icon: '!far fa-copy', command: 'copy' });
+				items.push({ name: '@(Copy with syntax)', icon: 'print', value: 'copysyntax' });
+				items.push({ name: '@(Copy as Markdown)', icon: '!fab fa-markdown', value: 'copymarkdown' });
+
+				if (can && code.current.ext === 'js' && ((/varchar|int|boolean/i).test(text)))
+					items.push({ name: '@(Transform SQL to schema)', icon: 'database', value: 'sql2schema' });
+
+				items.push('-');
+
+				if ((code.current.ext === 'css' || code.current.ext === 'html') && (/\:(\s)?#|#\w{6}|color\:/).test(text))
+					items.push({ name: '@(Transform for Dark mode)', icon: 'tint', value: 'darkmode' });
+
+				if ((/(#)?[A-F0-9]{6}/i).test(text))
+					items.push({ name: '@(Convert to RGBA)', icon: 'palette', value: 'hex2rgba' });
+
+				if ((/[:\|\='"\{]/).test(text))
+					items.push({ name: '@(Align)', icon: 'align-left', value: 'align' });
+
+				if (code.current.ext === 'js' && text.indexOf('ROUTE(') !== -1)
+					items.push({ name: '@(Align routes)', icon: 'align-justify', value: 'alignrouting' });
+
+				if ((/js|css|html/).test(code.current.ext)) {
+					items.push({ name: '@(Comment)', icon: 'comment-alt', value: 'comment' });
+					if (code.current.ext !== 'css') {
+						tmp = text.charAt(0);
+						if (tmp === '[' || tmp === '{')
+							items.push({ name: '@(Format JSON)', icon: 'broom', value: 'formatjson' });
+						/*else if (code.current.ext === 'html')
+							items.push({ name: '@(Beautify HTML)', icon: 'broom', value: 'formathtml' });*/
+					}
+				}
+
+				if (text.indexOf('\n') !== -1)
+					items.push({ name: '@(Sort)', icon: 'sort-alpha-down', value: 'sort' });
+
+				if ((/css/).test(code.current.ext))
+					items.push({ name: '@(Clean)', icon: 'broom', value: 'clean' });
+
+				sub = [];
+				sub.push({ name: '@(Base64)', icon: 'chevron-right', value: 'btoa' });
+				sub.push({ name: '@(Hex)', icon: 'chevron-right', value: 'hexe', server: true });
+				sub.push({ name: '@(Encode URI)', icon: 'chevron-right', value: 'encodeURIComponent' });
+				sub.push({ name: '@(Escape)', icon: 'chevron-right', value: 'escape' });
+				sub.push({ name: '@(Slug)', icon: 'chevron-right', value: 'slug' });
+				sub.push({ name: '@(HASH)', icon: 'chevron-right', value: 'HASH' });
+				sub.push({ name: '@(Translate)', icon: 'chevron-right', value: 'translate' });
+				sub.push({ name: '@(MD5)', icon: 'chevron-right', value: 'md5', server: true });
+				sub.push({ name: '@(SHA-1)', icon: 'chevron-right', value: 'sha1', server: true });
+				sub.push({ name: '@(SHA-256)', icon: 'chevron-right', value: 'sha256', server: true });
+				sub.push({ name: '@(SHA-512)', icon: 'chevron-right', value: 'sha512', server: true });
+				sub.push({ name: '@(CRC-32)', icon: 'chevron-right', value: 'crc32', server: true });
+				sub.push({ name: '@(CRC-32 unsigned)', icon: 'chevron-right', value: 'crc32unsigned', server: true });
+				sub.push({ name: '@(Optimize for search)', icon: 'search', value: 'search' });
+				items.push({ name: '@(Encode)', icon: 'lock', value: 'encode', children: sub });
+
+				sub = [];
+				sub.push({ name: '@(Hex)', icon: 'chevron-right', value: 'hexd', server: true });
+				sub.push({ name: '@(Base64)', icon: 'chevron-right', value: 'atob' });
+				sub.push({ name: '@(Decode URI)', icon: 'chevron-right', value: 'decodeURIComponent' });
+				sub.push({ name: '@(Unescape)', icon: 'chevron-right', value: 'unescape' });
+				items.push({ name: '@(Decode)', icon: 'unlock', value: 'decode', children: sub });
+
+				sub = [];
+				sub.push({ name: '@(JavaScript)', icon: 'chevron-right', value: 'js' });
+				sub.push({ name: '@(HTML)', icon: 'chevron-right', value: 'html' });
+				sub.push({ name: '@(CSS)', icon: 'chevron-right', value: 'css' });
+				sub.push({ name: '@(JSON)', icon: 'chevron-right', value: 'json' });
+				items.push({ name: '@(Minify code)', icon: 'compress', value: 'minify', children: sub });
+
+				items.push({ name: '@(Upper Case)', icon: 'font', value: 'upper' });
+				items.push({ name: '@(Lower Case)', icon: 'font', value: 'lower' });
+				items.push({ name: '@(Clean duplicated lines)', icon: 'broom', value: 'cleanduplicatedlines' });
+				items.push('-');
+			}
+
+			sub = [];
+			if ((/^(js|css|html)$/).test(code.current.ext)) {
+				sub.push({ name: '@(UI components)', icon: 'chevron-right', value: 'ui' });
+				// sub.push({ name: '@(Snippet)', icon: 'chevron-right', value: 'snippet' });
+			}
+
+			sub.push({ name: '@(UID)', icon: 'chevron-right', value: 'uid' });
+			sub.push({ name: '@(GUID)', icon: 'chevron-right', value: 'guid' });
+			sub.push({ name: '@(Password)', icon: 'chevron-right', value: 'password' });
+			sub.push({ name: '@(Hostname)', icon: 'chevron-right', value: 'url' });
+			sub.push({ name: '@(IP address - my)', icon: 'chevron-right', value: 'ip' });
+			sub.push({ name: '@(IP address - server)', icon: 'chevron-right', value: 'ipserver' });
+			sub.push({ name: '@(Date / Time)', icon: 'chevron-right', value: 'date' });
+
+			sub.push('-');
+			sub.push({ name: '<>="\'`', icon: 'keyboard', id: 'char' });
+			sub.push({ name: '()[]{}', icon: 'keyboard', id: 'char' });
+			sub.push({ name: ':+-*\\/|', icon: 'keyboard', id: 'char' });
+			sub.push({ name: '_&*~$', icon: 'keyboard', id: 'char' });
+			sub.push({ name: '%!@#°^', icon: 'keyboard', id: 'char' });
+
+			items.push({ name: '@(Insert)', icon: 'plus-circle green', value: 'insert', children: sub });
+			items.push({ name: '@(Insert emoji)', icon: 'smile yellow', value: 'emoji' });
+			items.push({ name: '@(Insert color)', icon: 'fill-drip colorize', value: 'colorpicker' });
+
+			if (code.current.path.indexOf('/config') !== -1)
+				items.push({ name: '@(Insert connection string)', icon: 'database', value: 'insertconnection' });
+
+			if ((/js|json|html|todo|api|txt|versions|sitemap/).test(code.current.ext)) {
+
+				sub = [];
+				if (code.current.path.substring(0, 9) === '/scripts/' && code.current.ext === 'js') {
+					sub.push({ name: '@(Script)', icon: 'code', value: 'template', id: 'script' });
+				} else if (code.current.ext === 'js') {
+					sub.push({ name: '@(Controller)', icon: 'code', value: 'template', id: 'controller' });
+					sub.push({ name: '@(Schema)', icon: 'code', value: 'template', id: 'schema' });
+					sub.push({ name: '@(Operation)', icon: 'code', value: 'template', id: 'operation' });
+				} else if (code.current.ext === 'json') {
+					sub.push({ name: '@(openplatform.json)', icon: 'code', value: 'template', id: 'openplatform' });
+					sub.push({ name: '@(package.json)', icon: 'code', value: 'template', id: 'package' });
+				} else if (code.current.ext === 'todo') {
+					sub.push({ name: '@(TO-DO example)', icon: 'code', value: 'template', id: 'todo' });
+				} else if (code.current.ext === 'api') {
+					sub.push({ name: '@(API example)', icon: 'code', value: 'template', id: 'restapi' });
+				} else if (code.current.ext === 'txt') {
+					sub.push({ name: '@(MIT license)', icon: 'code', value: 'template', id: 'license' });
+				} else if (code.current.ext === '/versions') {
+					sub.push({ name: '@(Versions template)', icon: 'code', value: 'template', id: 'versions' });
+				} else if (code.current.ext === '/sitemap') {
+					sub.push({ name: '@(Sitemap template)', icon: 'code', value: 'template', id: 'sitemap' });
+				} else {
+					sub.push({ name: '@(HTML template)', icon: 'code', value: 'template', id: 'html' });
+					sub.push({ name: '@(Plugin)', icon: 'code', value: 'template', id: 'plugin' });
+					sub.push({ name: '@(j-Form)', icon: 'code', value: 'template', id: 'form' });
+					sub.push({ name: '@(j-Modal)', icon: 'code', value: 'template', id: 'modal' });
+					sub.push({ name: '@(j-Panel)', icon: 'code', value: 'template', id: 'panel' });
+					sub.push({ name: '@(j-Window)', icon: 'code', value: 'template', id: 'window' });
+				}
+
+				items.push({ name: '@(Insert template)', icon: 'plus-circle', value: 'template', children: sub });
+			}
+
+			SETTER('menu', 'showxy', e.pageX + 5, e.pageY - 15, items, function(value) {
+
+				if (value.command) {
+					editor.focus();
+					setTimeout(function() {
+						document.execCommand(value.command, true);
+					}, 100);
+					return;
+				}
+
+				if (value.value === 'insertconnection') {
+					editor.replaceSelection('postgresql://user:password@localhost:5432/database');
+					return;
+				}
+
+				if (value.id === 'char') {
+					editor.replaceSelection(value.name);
+					return;
+				}
+
+				if (value.value === 'hex2rgba') {
+					editor.replaceSelection(FUNC.hex2rgba(text));
+					return;
+				}
+
+				if (value.value === 'darkmode') {
+					editor.replaceSelection(FUNC.colorize(text, '.ui-dark'));
+					return;
+				}
+
+				if (value.value === 'cleanduplicatedlines') {
+					editor.replaceSelection(FUNC.cleanduplicatedlines(text));
+					return;
+				}
+
+				if (value.value === 'copysyntax') {
+					var div = document.createElement('DIV');
+					var el = document.createElement('PRE');
+					div.style = 'position:absolute;left:-2000px;top:-2000px;opacity:0';
+					div.appendChild(el);
+					document.body.appendChild(div);
+					var cur = editor.getModeAt(editor.getCursor());
+					var t = cur.helperType || cur.name;
+					if (t === 'json')
+						t = 'application/ld+json';
+					CodeMirror.runMode(FUNC.strim(text).replace(/\t/g, '  '), t, el);
+					el.setAttribute('class', 'cm-s-default');
+					el.setAttribute('contenteditable', 'true');
+					el.focus();
+					document.execCommand('selectAll', false, null);
+					document.execCommand('copy', false, null);
+					setTimeout(function() {
+						document.body.removeChild(div);
+					}, 500);
+					return;
+				}
+
+				if (value.value === 'copymarkdown') {
+					var cur = editor.getModeAt(editor.getCursor());
+					var syntax = FUNC.getext(cur.helperType || cur.name);
+					SETTER('clipboard', 'copy', '```' + syntax + '\n' + FUNC.strim(text).replace(/\t/g, '  ').trim() + '\n```');
+					return;
+				}
+
+				if (value.value === 'formatjson') {
+					try {
+						editor.replaceSelection(JSON.stringify(JSON.parse(text), null, '\t'));
+					} catch (e) {}
+					return;
+				}
+
+				if (value.value === 'formathtml') {
+					editor.replaceSelection(FUNC.formathtml(text));
+					return;
+				}
+
+				if (value.value === 'run') {
+					if ((/\/scripts\//g).test(code.current.path))
+						FUNC.requestscript(code.data.id, code.current.path);
+					else
+						FUNC.request(text, editor.getValue());
+					return;
+				}
+
+				if (value.value === 'alignrouting') {
+					editor.replaceSelection(FUNC.alignrouting(text));
+					return;
+				}
+
+				if (value.value === 'sql2schema') {
+					editor.replaceSelection(FUNC.sql2schema(text));
+					return;
+				}
+
+				if (value.value === 'url') {
+					editor.replaceSelection(code.data.url);
+					return;
+				}
+
+				if (value.value === 'clean') {
+					editor.replaceSelection(FUNC.cleancss(text));
+					return;
+				}
+
+				if (value.value === 'emoji') {
+					var opt = {};
+					opt.x = e.pageX - 10;
+					opt.y = e.pageY - 20;
+					opt.callback = function(selected) {
+						editor.replaceSelection(selected);
+					};
+					setTimeout(function() {
+						SETTER('emoji', 'show', opt);
+					}, 100);
+					return;
+				}
+
+				if (value.value === 'colorpicker') {
+					var opt = {};
+					opt.x = e.pageX - 10;
+					opt.y = e.pageY + 10;
+					opt.callback = function(selected) {
+						editor.replaceSelection(selected);
+					};
+					setTimeout(function() {
+						SETTER('colorpicker', 'show', opt);
+					}, 100);
+					return;
+				}
+
+				setTimeout(function() {
+
+					var items = [];
+					var y = 0;
+					var x = 20;
+
+					if (value.value === 'sort') {
+
+						for (var i = 0; i < sel.length; i++) {
+							sel[i] = sel[i].split('\n');
+							sel[i].sort();
+							sel[i] = sel[i].join('\n');
+						}
+
+						editor.replaceSelections(sel);
+						return;
+					}
+
+					if (value.value === 'upper' || value.value === 'lower') {
+						for (var i = 0; i < sel.length; i++)
+							sel[i] = value.value === 'lower' ? sel[i].toLowerCase() : sel[i].toUpperCase();
+						editor.replaceSelections(sel);
+						return;
+					}
+
+					if (value.value === 'comment') {
+
+						var cur = editor.getModeAt(editor.getCursor());
+						var syntax = FUNC.getext(cur.helperType || cur.name);
+
+						for (var i = 0; i < sel.length; i++) {
+							sel[i] = sel[i].split('\n');
+							sel[i] = FUNC.comment(syntax, sel[i]).join('\n');
+						}
+
+						editor.replaceSelections(sel);
+						return;
+					}
+
+					if (value.value === 'align') {
+						if (code.current.name === 'sitemap') {
+							for (var i = 0; i < sel.length; i++) {
+								sel[i] = sel[i].split('\n');
+								sel[i] = FUNC.alignsitemap(sel[i]).join('\n');
+							}
+							editor.replaceSelections(sel);
+						} else {
+							for (var i = 0; i < sel.length; i++) {
+								sel[i] = sel[i].split('\n');
+								sel[i] = FUNC.aligntext(sel[i]).join('\n');
+							}
+							editor.replaceSelections(sel);
+						}
+						return;
+					}
+
+					if (value.server) {
+						var model = {};
+						model.type = value.value;
+						model.body = sel;
+						AJAX('POST /api/common/encrypt/', model, function(response) {
+							editor.replaceSelections(response);
+						});
+						return;
+					}
+
+					switch (value.value) {
+						case 'search':
+							for (var i = 0; i < sel.length; i++)
+								sel[i] = sel[i].toSearch();
+							editor.replaceSelections(sel);
+							break;
+						case 'template':
+							AJAX('GET /api/templates/' + value.id, function(response) {
+								var url = code.data.url;
+								if (url.substring(url.length - 1) === '/')
+									url = url.substring(url.length - 1);
+								editor.replaceSelection(response.replace(/@URL/g, url));
+							});
+							break;
+						case 'ui':
+							SET('common.form', 'componentator');
+							break;
+						case 'snippet':
+							SET('common.form', 'snippets');
+							break;
+						case 'uid':
+						case 'ip':
+						case 'ipserver':
+							AJAX('GET /api/common/{0}/'.format(value.value), function(response) {
+								editor.replaceSelection(response);
+							});
+							break;
+						case 'date':
+							var dt = new Date();
+							dt.setSeconds(0);
+							dt.setMilliseconds(0);
+							editor.replaceSelection(dt.format(null));
+							break;
+						case 'password':
+							var pwd = GUID(15);
+							for (var i = 0; i < pwd.length; i++) {
+								if (i % 2 === 0)
+									pwd = pwd.substring(0, i) + pwd.substring(i, i + 1).toUpperCase() + pwd.substring(i + 1);
+							}
+							editor.replaceSelection(pwd);
+							break;
+						case 'GUID':
+							editor.replaceSelection(GUID(50));
+							break;
+						case 'guid':
+							editor.replaceSelection(FUNC.guid());
+							break;
+						case 'encodeURIComponent':
+						case 'decodeURIComponent':
+						case 'atob':
+						case 'btoa':
+						case 'escape':
+						case 'unescape':
+						case 'HASH':
+								for (var i = 0; i < sel.length; i++) {
+									try {
+										sel[i] = window[value.value](sel[i]).toString();
+									} catch(e) {}
+								}
+							editor.replaceSelections(sel);
+							break;
+						case 'translate':
+							for (var i = 0; i < sel.length; i++)
+								sel[i] = 'T' + HASH(sel[i]).toString();
+							editor.replaceSelections(sel);
+							break;
+						case 'slug':
+							for (var i = 0; i < sel.length; i++)
+								sel[i] = sel[i][value.value]();
+							editor.replaceSelections(sel);
+							break;
+						case 'json':
+							var tmp = PARSE(editor.getSelection().trim());
+							editor.replaceSelection(JSON.stringify(tmp));
+							break;
+						case 'js':
+						case 'css':
+						case 'html':
+							AJAX('POST /api/files/minify/', { body: editor.getSelection(), type: value.value }, function(response) {
+								editor.replaceSelection(response);
+							});
+							break;
+					}
+				}, 200);
+			});
+		};
+
+		WATCH('code.editor.body', function(path, value, type) {
+
+			// cache
+			if (type === 1 && code.editor.body && code.current) {
+				setTimeout2('code.modified', function() {
+
+					if (!code.current)
+						return;
+
+					var diffel = editor.find('.cm-diff:first-child');
+					var is = 0;
+					if (diffel.length) {
+						exports.cache_set();
+						if (!code.current.modified) {
+							code.current.modified = true;
+							is = 1;
+						}
+					} else if (code.current.modified) {
+						code.current.modified = false;
+						is = 2;
+					}
+					is && exports.element.find('section.tabs').find('span[data-value="{0}"]'.format(code.current.path)).tclass('modified', is === 1);
+					exports.tablocked();
+				}, 250);
+			}
+
+			if (code.current && (!code.current.path || code.current.path.substring(code.current.path.length - 3) === '.js')) {
+				setTimeout2('jshint', function() {
+					SET('code.errors', JSHINT.errors.slice(0));
+				}, 800);
+			}
+		});
+
+		exports.warning = function(el) {
+			var parent = el.closest('.alert');
+			switch (parent.attrd('name')) {
+				case 'backup':
+					if (el.attrd('name') === 'restore')
+						SET('code.editor.body', exports.cache_get(code.editor.path));
+					else
+						exports.cache_rem(code.editor.path);
+					SET('code.backup', false);
+					break;
+				case 'multiple':
+					code.SYNC = false;
+					if (code.backup) {
+						exports.cache_rem(code.editor.path);
+						SET('code.backup', false);
+					}
+					SET('code.multiple', false);
+					break;
+			}
+			exports.tablocked();
+		};
+
+		var cache_sync = { TYPE: 'sync' };
+
+		exports.sync = function(data) {
+			code.SYNCUSER = user.id;
+			code.SYNCID = common.id;
+			// Determines how many people is editing this file?
+			if (code.usersfile.length > 1 && code.SYNC) {
+				cache_sync.data = STRINGIFY(data);
+				cache_sync.connid = common.id;
+				cache_sync.projectid = code.projectid;
+				cache_sync.userid = user.id;
+				FUNC.wssend(cache_sync);
+			}
+		};
+
+		exports.rename = function(item, val, callback) {
+
+			var data = {};
+
+			data.oldpath = item.path;
+			data.newpath = val;
+
+			if (data.newpath === data.oldpath) {
+				callback(false);
+				return;
+			}
+
+			SETTER('loading', 'show');
+			AJAX('POST /api/files/{id}/rename/'.arg(code.data), data, function(response) {
+				SETTER('loading', 'hide', 500);
+				exports.closetab(data.oldpath);
+				callback(response.success);
+				exports.load(code.data.id, true);
+			});
+		};
+
+		exports.shortcut = function(type) {
+			switch (type) {
+				case 'nexttab':
+					var index = code.current ? code.open.indexOf(code.current) : -1;
+					if (index !== -1) {
+						var next = code.open[index + 1];
+						if (next == null && index !== 0)
+							next = code.open[0];
+						next && exports.opentab(next.path);
+					}
+					break;
+				case 'F5':
+					FUNC.editor_reload();
+					break;
+				case 'save':
+					exports.save();
+					break;
+				case 'close':
+					setTimeout2('closetab', exports.close, 200);
+					break;
+			}
+		};
+
+		exports.upload = function(node, files) {
+
+			var data = new FormData();
+			var name = [];
+
+			data.append('path', node ? FUNC.getPath(node.path) : '/');
+
+			for (var i = 0, length = files.length; i < length; i++) {
+				name.push(files[i].name);
+				data.append('file' + i, files[i]);
+			}
+
+			UPLOAD('POST /api/projects/{id}/upload/'.arg(code.data), data, function(response) {
+				if (response instanceof Array)
+					FUNC.warning(response);
+				else {
+					FUNC.success('Uploaded successfully: <b>' + name.join(', ') + '</b>');
+					exports.load(code.data.id, true);
+				}
+			});
+		};
+
+		exports.modified = function(changescount) {
+			if (code && code.current && code.current.path) {
+				code.current.modified = changescount == null ? true : changescount > 0;
+				exports.element.find('section.tabs').find('span[data-value="{0}"]'.format(code.current.path)).tclass('modified', code.current.modified);
+				SET('code.current.changes', editor.difflines());
+			}
+		};
+
+		exports.open = function(item) {
+
+			if (!item || item.children)
+				return;
+
+			code.SYNCUSER = null;
+			code.SYNCID = null;
+
+			var tab = code.open.findItem('path', item.path);
+			if (tab && tab.loaded) {
+				code.SYNC = false;
+				SET('code.multiple', false);
+				if (tab.path !== code.editor.path) {
+					// check if the content has been modified
+					exports.edit(tab);
+					exports.savetabs();
+				}
+				exports.tablocked();
+				tab.skip = true;
+				exports.element.SETTER('tree', 'selectpath', tab.path, true);
+				tab.time = code.lastchange = Date.now();
+				return;
+			}
+
+			var rewrite = false;
+			var index = -1;
+
+			// we can open file on the current tab
+			if (!code.SYNC && code.current && !code.current.modified && !code.current.skip && (!tab || code.current.path !== tab.path)) {
+				index = code.open.indexOf(code.current);
+			} else {
+				var tmp = code.open[code.open.length - 1];
+				if (tmp && !tmp.skip)
+					index = code.open.length - 1;
+			}
+
+			if (index !== -1 && (!code.current || !tab || code.current.path !== tab.path)) {
+				code.open.splice(index, 1);
+				exports.cache_rem(code.current);
+				code.current = null;
+			}
+
+			var newbie = false;
+			var ext = item.path.substring(item.path.lastIndexOf('.') + 1).toLowerCase();
+
+			switch (ext) {
+				case 'pdf':
+				case 'jpg':
+				case 'ico':
+				case 'jpeg':
+				case 'png':
+				case 'gif':
+				case 'file':
+				case 'nosql-binary':
+					W.open('/api/download/{0}/?path={1}&preview=1'.format(code.data.id, encodeURIComponent(item.path)));
+					return;
+				case 'xls':
+				case 'xlsx':
+				case 'docx':
+				case 'doc':
+				case 'zip':
+				case 'rar':
+					W.open('/api/download/{0}/?path={1}'.format(code.data.id, encodeURIComponent(item.path)));
+					return;
+			}
+
+			code.SYNC = false;
+			SET('code.multiple', false);
+
+			AJAX('GET /api/projects/{id}/edit/'.arg(code.data), { path: item.path }, function(response) {
+
+				if (response instanceof Array) {
+					FUNC.warning(response);
+					response = '';
+				}
+
+				if (!tab) {
+					newbie = true;
+					tab = {};
+					tab.path = item.path;
+					tab.name = item.name;
+				}
+
+				tab.loaded = true;
+				tab.body = response;
+				tab.ext = ext;
+				tab.hashsum = HASH(response);
+				tab.time = code.lastchange = Date.now();
+
+				var cache = exports.cache_get(item.path);
+				SET('code.backup', cache && cache !== response);
+				newbie && PUSH('code.open', tab);
+				exports.edit(tab, true);
+				exports.savetabs();
+				exports.element.SETTER('tree', 'select2', FUNC.treeindex(code.tree, item.path), true);
+				editor.editor.focus();
+			});
+		};
+
+		exports.opentab = function(path) {
+			exports.open({ children: null, path: path });
+		};
+
+		exports.options_editor = function(el) {
+
+			var items = [];
+			var is = !!code.editor.path;
+
+			is && code.components && code.components.length && items.push({ value: 8, name: '@(Used parts)', icon: 'puzzle-piece', shortcut: 'F2' });
+			// is && items.push({ value: 10, name: '@(Insert snippet)', icon: 'paste', shortcut: 'F4' });
+			is && (/js|css|html/).test(code.current.ext) && items.push({ value: 12, name: '@(Insert icon)', icon: 'images', shortcut: 'F6' });
+			is && items.length && items.push('-');
+			is && items.push({ value: 1, name: '@(Reload)', icon: 'refresh', shortcut: 'F5' });
+			is && items.push({ value: 2, name: '@(Find)', icon: 'search', command: 'find' });
+			// is && items.push({ value: 2, name: '@(Replace)', icon: 'search', command: 'replaceAll' });
+			is && items.push({ value: 11, name: '@(Translate)', icon: 'language' });
+			is && items.push({ value: 3, name: '@(Convert to Tabs)', icon: 'align-right' });
+			is && common.electron && code.data.repository && items.push({ value: 5, name: '@(Save locally)', icon: 'floppy-o' });
+			is && items.push({ value: 4, name: '@(Restore from backup)', icon: 'history' });
+			is && items.push({ value: 18, name: '@(Clear user changes)', icon: 'recycle red' });
+			is && code.data.pathsync && items.push({ value: 6, name: '@(Save synchronized)', icon: 'sync green' });
+			common.electron && code.data.repository && items.push({ value: 7, name: '@(Download <strong>last changes</strong>)', icon: 'floppy-o' });
+			is && items.push({ value: 99, name: '<strong>@(Code review)</strong>', icon: 'check-circle green' });
+			is && items.push('-');
+			items.push({ value: 13, name: common.showparts ? '@(Disable parts panel)' : '<strong>@(Enable parts panel)</strong>', icon: 'puzzle-piece' + (common.showparts ? '' : ' green') });
+			items.push({ value: 15, name: common.powermode ? '@(Disable power mode)' : '<strong>@(Enable power mode)</strong>', icon: 'flask' + (common.powermode ? '' : ' green') });
+			items.push({ value: 17, name: '@(To-Do list)', icon: 'check' });
+			items.push({ value: 14, name: '@(Output panel)', icon: 'rss' });
+			items.push({ value: 9, name: '@(Show log file)', icon: 'bug red', shortcut: 'F10' });
+			items.push({ value: 16, name: '@(Clipboard)', icon: 'clipboard', shortcut: 'F11' });
+			items.push({ value: 20, name: '@(Translate application)', icon: 'language' });
+
+			if (code.data.allowbundle) {
+				items.push('-');
+				items.push({ value: 19, name: '@(Make a bundle)', icon: 'box', classname: 'b' });
+			}
+
+			SETTER('menu', 'show', 'left', el, items, function(item) {
+				switch (item.value) {
+					case 1:
+						FUNC.editor_reload();
+						break;
+					case 2:
+						setTimeout(function() {
+							editor.editor.focus();
+							editor.editor.execCommand(item.command);
+						}, 200);
+						break;
+					case 3:
+						if (code.SYNC)
+							FUNC.warning('@(You can\'t replace all spaces to tabs in collaboration mode.)');
+						else
+							editor.editor.setValue(FUNC.spaces_to_tabs(editor.editor.getValue()));
+						break;
+					case 4:
+						SET('common.form', 'backups');
+						break;
+					case 12:
+						SET('common.form', 'icons');
+						break;
+					case 13:
+						TOGGLE('common.showparts');
+						break;
+					case 15:
+						TOGGLE('common.powermode');
+						break;
+					case 16:
+						EXEC('code/clipboard');
+						break;
+					case 17:
+						SET('common.form', 'tasks');
+						break;
+					case 20:
+						EXEC('code/localize');
+						break;
+					case 14:
+						SET('common.form', 'output');
+						break;
+					case 5:
+						exports.savelocal();
+						break;
+					case 6:
+						exports.save(false, true);
+						break;
+					case 7:
+						exports.savelocalchanges();
+						break;
+					case 8:
+						SET('common.form', 'components');
+						break;
+					case 9:
+						exports.debug();
+						break;
+					case 10:
+						SET('common.form', 'snippets');
+						break;
+					case 11:
+						exports.translate();
+						break;
+					case 99:
+						exports.review();
+						break;
+					case 18:
+						AJAX('DELETE /api/projects/{id}/diff/'.arg(code.data) + '?path=' + encodeURIComponent(code.current.path));
+						code.current.diff = [];
+						editor.diffuserclear();
+						break;
+					case 19:
+						// SETTER('loading', 'show');
+						location.href = '/api/projects/{id}/bundle/'.arg(code.data);
+						break;
+				}
+			}, -5, -5);
+		};
+
+		exports.translate = function() {
+			AJAX('GET /api/projects/{id}/translate/'.arg(code.data), { path: code.current.path }, function(response) {
+				if (typeof(response) === 'string') {
+					if (response) {
+						setTimeout(function() {
+							SETTER('clipboard', 'copy', response);
+						}, 1000);
+						FUNC.success('@(Localized dictionary has been copied into the clipboard)');
+					} else
+						FUNC.warning('@(This file doesn\'t contain any localization markup.)');
+				}
+			});
+		};
+
+		exports.options = function(node, el) {
+
+			var items = [];
+
+			if (node.name === 'bundles')
+				items.push({ value: 'bundles', name: '@(Download bundles)', icon: 'cloud-download', classname: 'b' });
+
+			if (node.name === 'definitions') {
+				if (!node.children.findItem('name', 'auth.js'))
+					items.push({ makefile: true, name: '@(Create:) auth.js', icon: 'file-text-o' });
+				if (!node.children.findItem('name', 'db.js'))
+					items.push({ makefile: true, name: '@(Create:) db.js', icon: 'file-text-o' });
+				if (!node.children.findItem('name', 'func.js'))
+					items.push({ makefile: true, name: '@(Create:) func.js', icon: 'file-text-o' });
+				if (!node.children.findItem('name', 'main.js'))
+					items.push({ makefile: true, name: '@(Create:) main.js', icon: 'file-text-o' });
+				if (!node.children.findItem('name', 'merge.js'))
+					items.push({ makefile: true, name: '@(Create:) merge.js', icon: 'file-text-o' });
+				if (!node.children.findItem('name', 'service.js'))
+					items.push({ makefile: true, name: '@(Create:) service.js', icon: 'file-text-o' });
+			}
+
+			if (node.name === 'controllers') {
+				if (!node.children.findItem('name', 'api.js'))
+					items.push({ makefile: true, name: '@(Create:) api.js', icon: 'file-text-o' });
+				if (!node.children.findItem('name', 'default.js'))
+					items.push({ makefile: true, name: '@(Create:) default.js', icon: 'file-text-o' });
+			}
+
+			if (node.name === 'css') {
+				if (!node.children.findItem('name', 'default.css'))
+					items.push({ makefile: true, name: '@(Create:) default.css', icon: 'file-text-o' });
+				if (!node.children.findItem('name', 'ui.css'))
+					items.push({ makefile: true, name: '@(Create:) ui.css', icon: 'file-text-o' });
+			}
+
+			if (node.name === 'public') {
+				if (!node.children.findItem('name', 'css'))
+					items.push({ makedir: true, name: '@(Create:) css', icon: 'folder-o' });
+				if (!node.children.findItem('name', 'forms'))
+					items.push({ makedir: true, name: '@(Create:) forms', icon: 'folder-o' });
+				if (!node.children.findItem('name', 'img'))
+					items.push({ makedir: true, name: '@(Create:) img', icon: 'folder-o' });
+				if (!node.children.findItem('name', 'js'))
+					items.push({ makedir: true, name: '@(Create:) js', icon: 'folder-o' });
+				if (!node.children.findItem('name', 'pages'))
+					items.push({ makedir: true, name: '@(Create:) pages', icon: 'folder-o' });
+				if (!node.children.findItem('name', 'panels'))
+					items.push({ makedir: true, name: '@(Create:) panels', icon: 'folder-o' });
+				if (!node.children.findItem('name', 'parts'))
+					items.push({ makedir: true, name: '@(Create:) parts', icon: 'folder-o' });
+				if (!node.children.findItem('name', 'templates'))
+					items.push({ makedir: true, name: '@(Create:) templates', icon: 'folder-o' });
+			}
+
+			if (node.name === 'js') {
+				if (!node.children.findItem('name', 'default.js'))
+					items.push({ makefile: true, name: '@(Create:) default.js', icon: 'file-text-o' });
+				if (!node.children.findItem('name', 'ui.js'))
+					items.push({ makefile: true, name: '@(Create:) ui.js', icon: 'file-text-o' });
+			}
+
+			if (node.name === 'resources') {
+				if (!node.children.findItem('name', 'default.resource'))
+					items.push({ makefile: true, name: '@(Create:) default.resource', icon: 'file-text-o' });
+			}
+
+			if (items.length)
+				items.push('-');
+
+			if (node.name === 'packages') {
+				items.push({ value: 'packages', name: '@(Download packages)', icon: 'cloud-download', classname: 'b' });
+				items.push('-');
+			}
+
+			if (node.name === 'modules') {
+				items.push({ value: 'modules', name: '@(Download modules)', icon: 'cloud-download', classname: 'b' });
+				items.push('-');
+			}
+
+			if (node.name === 'schemas') {
+				items.push({ value: 'schemas', name: '@(Download schemas)', icon: 'cloud-download', classname: 'b' });
+				items.push('-');
+			}
+
+			if (node.name === 'operations') {
+				items.push({ value: 'operations', name: '@(Download operations)', icon: 'cloud-download', classname: 'b' });
+				items.push('-');
+			}
+
+			if (node.children) {
+				items.push({ value: 'file', name: '@(Create file)', icon: '!far fa-file-text-o' });
+				items.push({ value: 'directory', name: '@(Create directory)', icon: '!far fa-folder-o' });
+			} else {
+				items.push({ value: 'download', name: '@(Download file)', icon: 'cloud-download', classname: 'b' });
+				items.push('-');
+			}
+
+			items.push({ value: 3, name: '@(Rename)', icon: 'pencil' });
+			!node.children && items.push({ value: 2, name: '@(Duplicate)', icon: 'copy' });
+			items.push({ value: 255, name: '@(Remove)', icon: 'times-circle red' });
+
+			var path = node.path;
+
+			SETTER('menu', 'show', 'right', el, items, function(item) {
+
+				if (item.makefile) {
+					var name = path + item.name.substring(item.name.indexOf(':') + 1).trim();
+					SET('code.statusform.name', '');
+					if (!code.statusform)
+						code.statusform = {};
+					code.statusform.path = '';
+					exports.statusform('file', name);
+					return;
+				}
+
+				if (item.makedir) {
+					var name = path + item.name.substring(item.name.indexOf(':') + 1).trim();
+					SET('code.statusform.name', '');
+					if (!code.statusform)
+						code.statusform = {};
+					code.statusform.path = '';
+					exports.statusform('directory', name);
+					return;
+				}
+
+				switch (item.value) {
+					case 'download':
+						location.href = '/api/download/' + code.data.id + '/?path=' + encodeURIComponent(path);
+						break;
+					case 'bundles':
+					case 'packages':
+					case 'modules':
+					case 'schemas':
+					case 'operations':
+						SET('common.form', item.value);
+						break;
+					case 'file':
+					case 'directory':
+						SET('code.statusform.name', item.value);
+						code.statusform.path = node.path + (node.path ? '/' : '');
+						break;
+
+					case 2:
+						// Duplicate
+						var name = node.path;
+
+						var index = name.lastIndexOf('.');
+						if (index === -1) {
+							name += '-2';
+						} else
+							name = name.substring(0, index) + '-2' + name.substring(index);
+
+						SET('code.statusform.name', 'file');
+						SETTER('statusform', 'val', name, node.path);
+						break;
+
+					case 3:
+						setTimeout(function() {
+							exports.element.SETTER('tree', 'rename', node.$pointer);
+						}, 500);
+						break;
+					case 255:
+						SETTER('confirm', 'show', '@(Are you sure you want to remove <b>{0}</b>?)'.format(node.path), ['"trash-o" @(Remove)', '@(Cancel)'], function(index) {
+							if (!index) {
+								var data = {};
+								data.path = node.path;
+								SETTER('loading', 'show');
+								AJAX('POST /api/files/{id}/remove/'.arg(code.data), data, function() {
+									SETTER('loading', 'hide', 100);
+									FUNC.success('@(Removed successfully: <b>{0}</b>.)'.format(data.path));
+									var el = exports.element.find('.tabs');
+									el = el.find('span[data-value="{0}"]'.format(data.path));
+									if (el.length)
+										el.find('i').trigger('click');
+									SET('code.tree', FUNC.treeremove(code.tree, node.path));
+								});
+							}
+						});
+						break;
+				}
+			}, 20, -30);
+		};
+
+		exports.close = function(el, e) {
+			var path = code.current.path;
+			if (el instanceof jQuery)
+				path = el.parent().attrd('value');
+			var tab = code.open.findItem('path', path);
+			if (tab) {
+				if (tab.modified) {
+					SETTER('confirm', 'show', '@(The content has been modified. <b>Do you want to <u>discard changes</u>?</b>)', ['"trash-o" @(Discard changes)', '@(Cancel)'], function(index) {
+						!index && exports.closeforce(tab.path);
+					});
+				} else
+					exports.closeforce(tab.path);
+			}
+		};
+
+		exports.closeforce = function(path) {
+			//common.form && SET('common.form', '');
+			exports.closetab(path || code.current.path);
+		};
+
+		exports.closetab = function(path) {
+
+			var tab = code.open.findItem('path', path);
+			if (tab == null)
+				return;
+
+			var index = code.open.indexOf(tab);
+			code.open.splice(index, 1);
+			exports.cache_rem(tab.path);
+
+			UPDATE('code.open');
+
+			if (tab.path === code.editor.path) {
+				if (code.open.length) {
+					if (index - 1 > -1)
+						index -= 1;
+					else
+						index = 0;
+					exports.opentab(code.open[index].path);
+				} else {
+					FUNC.wsopen(code.data.id, '');
+					$('#body').rclass('warning');
+					SET('code.data.todocurrent', []);
+					SET('code.editor', {});
+					SET('code.multiple', false);
+					SET('code.backup', false);
+					SET('code.current.lastmodified', null);
+					exports.element.RECONFIGURE('editor', 'disabled:true');
+					NULL('code.current', 300);
+				}
+			}
+
+			exports.savetabs();
+		};
+
+		exports.edit = function(tab, serverside) {
+
+			if (typeof(tab) === 'string')
+				tab = code.open.findItem('path', tab);
+
+			if (common.form === 'backups')
+				SET('common.form', '');
+
+			var prev = GET('code.editor.path');
+			if (prev && prev !== tab.path && editor) {
+				prev = code.open.findItem('path', prev);
+				if (prev)
+					prev.doc = editor.copy(true);
+			}
+
+			code.editor.loaded = false;
+			editor && editor.clear(true);
+
+			var ext = tab.path.substring(tab.path.lastIndexOf('.') + 1).toLowerCase();
+			var mode;
+
+			if (tab.path === '/.bundlesignore' || tab.path === '/.bundleignore') {
+				mode = 'totaljsbundle';
+			} else {
+				switch (ext) {
+					case 'src/config':
+					case 'src/config-release':
+					case 'src/config-debug':
+					case 'src/config-test':
+					case 'src/versions':
+					case 'src/dependencies':
+					case 'src/sitemap':
+					case 'src/workflows':
+					case '/config':
+					case '/config-release':
+					case '/config-debug':
+					case '/config-test':
+					case '/versions':
+					case '/dependencies':
+					case '/sitemap':
+					case '/workflows':
+					case 'resource':
+					case 'package':
+					case 'bundle':
+						mode = 'totaljsresources';
+						break;
+					case 'env':
+						mode = 'env';
+						break;
+					case 'todo':
+						mode = 'todo';
+						break;
+					case 'js':
+						mode = 'javascript';
+						break;
+					case 'api':
+						mode = 'codeapi';
+						break;
+					case 'json':
+					case 'nosql':
+						mode = 'application/ld+json';
+						break;
+					case 'py':
+						mode = 'text/x-cython';
+						break;
+					case 'php':
+						mode = 'application/x-httpd-php';
+						break;
+					case 'css':
+						mode = 'text/css';
+						break;
+					case 'c':
+						mode = 'text/x-csrc';
+						break;
+					case 'cpp':
+						mode = 'text/x-c++src';
+						break;
+					case 'sql':
+						mode = 'text/x-sql';
+						break;
+					case 'sh':
+						mode = 'text/x-sh';
+						break;
+					case 'md':
+						mode = 'markdown';
+						break;
+					case 'sass':
+						mode = 'text/x-sass';
+						break;
+					case 'yaml':
+						mode = 'text/x-yaml';
+						break;
+					case 'xml':
+					case 'rss':
+						mode = 'application/xml';
+						break;
+					case 'html':
+					case 'htm':
+						mode = 'totaljs';
+						break;
+					default:
+						mode = 'plain';
+						break;
+				}
+			}
+
+			SET('code.editor.path', tab.path);
+			SET('code.editor.name', tab.name);
+			code.editor.hash = HASH(tab.path);
+			code.projectid = HASH(code.data.id + '_' + tab.path);
+
+			var change = code.changes[code.projectid];
+			if (change && tab.doc) {
+				exports.syncsave(change);
+				code.changes[code.projectid] = null;
+			}
+
+			if (JSHINT.errors) {
+				JSHINT.errors.length = 0;
+				SET('code.errors', EMPTYARRAY);
+			}
+
+			if (tab.doc) {
+				SETR('code.editor.body', tab.body, 'skip');
+				editor.paste(tab.doc);
+			} else {
+				editor.clear();
+				SETR('code.editor.body', tab.body, 2);
+				editor.paste(editor.copy(false));
+				var history = editor.editor.doc.history;
+				history.done.pop();
+				history.done.pop();
+			}
+
+			setTimeout2('code.autocomplete', editor.rebuild_autocomplete, 1000);
+			code.current = tab;
+			editor.reconfigure('disabled:false;mode:' + mode);
+			code.SYNCUSER = null;
+			code.SYNCID = null;
+
+			FUNC.wsopen(code.data.id, code.current.path, code.projectid);
+
+			code.editor.loaded = true;
+			code.editor.loadedcache = false;
+			!tab.doc && setTimeout(function() {
+				editor.editor.refresh();
+				exports.restoreposition();
+				code.editor.loadedcache = true;
+			}, 250);
+
+			(function(tab) {
+				AJAX('GET /api/projects/{id}/diff/'.arg(code.data), { path: tab.path }, function(response) {
+					tab.diff = response;
+					if (code.current && tab.path === code.current.path)
+						UPD('code.current.diff');
+				});
+			})(tab);
+
+			// Refresh tasks
+			exports.changelog();
+		};
+
+		exports.restoreposition = function(cursoronly) {
+
+			if (!code.current)
+				return;
+
+			var cache = exports.cache_getscroll(code.current.path);
+			if (cache) {
+				editor.editor.setCursor({ line: cache.line || 0, ch: cache.ch || 0 });
+				if (!cursoronly)
+					editor.editor.scrollTo(cache.x || 0, cache.y || 0);
+				editor.editor.focus();
+			} else {
+				if (!cursoronly)
+					editor.editor.scrollTo(0, 0);
+				editor.editor.setCursor(0);
+			}
+		};
+
+		exports.changelog = function() {
+
+			// In some cases can be null
+			if (!code.current)
+				return;
+
+			AJAX('GET /api/projects/{id}/changelog/'.arg(code.data), { path: code.current.path }, function(response) {
+				if (code.current && code.current.lastmodified && response) {
+					var tmp = code.current.lastmodified;
+					if (response.user !== user.name && (tmp.user !== response.user || tmp.updated.getTime() !== response.updated.getTime())) {
+						FUNC.info('@(<b>{0}</b> changed this file <b>{1}</b>.)'.format(response.user, Thelpers.time(response.updated)));
+						if (!code.SYNC && code.usersfile && code.usersfile.length === 1) {
+							SETTER('loading', 'show');
+							SETTER('loading', 'hide', 1000);
+							FUNC.editor_reload();
+						}
+					}
+				}
+				SET('code.current.lastmodified', response);
+			});
+		};
+
+		exports.load = function(id, skip, callback) {
+
+			SETTER('loading', 'show');
+
+			if (callback instanceof jQuery)
+				callback = null;
+
+			AJAX('GET /api/projects/{0}/files/'.format(id), function(response) {
+
+				SETTER('loading', 'hide', 1000);
+
+				if (response instanceof Array) {
+					FUNC.warning(response);
+					callback && callback();
+					return;
+				}
+
+				var tree = [];
+
+				for (var i = 0; i < response.directories.length; i++)
+					FUNC.treeappend(tree, response.directories[i]);
+
+				for (var i = 0; i < response.files.length; i++)
+					FUNC.treeappend(tree, response.files[i], true);
+
+				var item = tree.findItem('name', '#');
+				if (item) {
+					tree = tree.remove('name', '#');
+					for (var i = 0; i < item.children.length; i++)
+						tree.push(item.children[i]);
+				}
+
+				if (!skip)
+					exports.element.SETTER('tree', 'clear');
+
+				var todo = {};
+
+				if (response.todo) {
+					for (var i = 0; i < response.todo.length; i++) {
+						var item = response.todo[i];
+						if (todo[item.path])
+							todo[item.path].push(item);
+						else
+							todo[item.path] = [item];
+					}
+				}
+
+				var keys = Object.keys(todo);
+
+				response.todo = [];
+				keys.sort();
+
+				for (var i = 0; i < keys.length; i++) {
+					var obj = {};
+					obj.path = keys[i];
+					obj.items = todo[obj.path];
+					response.todo.push(obj);
+				}
+
+				SET('document.title', common.name + ': ' + response.name);
+
+				SET('code.data', response);
+				SET('code.tree', tree);
+
+				if (!skip) {
+					SET('code.editor', {});
+					SET('code.open', []);
+					SET('code.usersproject', EMPTYARRAY);
+					SET('code.usersfile', EMPTYARRAY);
+					SET('code.multiple', false);
+					$('#body').rclass('warning');
+					setTimeout(exports.restoretabs, 500);
+				}
+
+				AJAX('GET /api/projects/{0}/parts/'.format(id), 'code.componentsdb');
+				SETTER('loading', 'hide', 1000);
+				callback && callback();
+			});
+		};
+
+		exports.projects = function(el) {
+
+			var opt = {};
+			opt.element = el;
+			opt.items = code.projects;
+
+			for (var i = 0; i < opt.items.length; i++) {
+				var item = opt.items[i];
+				item.template = '<i class="fa fa-code-branch"></i>{{ if online }}<span>{{ online }}</span>{{ fi }}{{ name }}';
+				item.classname = code.data && code.data.id === item.id ? 'ui-directory-current' : '';
+			}
+
+			opt.offsetWidth = 100;
+			opt.offsetY = 10;
+			opt.offsetX = 10;
+			opt.class = 'ui-directory-projects';
+
+			opt.callback = function(item) {
+				common.recent = common.recent.remove('id', item.id);
+				if (common.recent.length > 20)
+					common.recent.pop();
+				PUSH('^common.recent', { id: item.id, name: item.name });
+				if (item && item.id)
+					REDIRECT('/?id=' + item.id);
+			};
+
+			SETTER('directory', 'show', opt);
+		};
+
+		exports.loadproject = function(el) {
+			REDIRECT('/?id=' + el.attrd('id'));
+		};
+
+		exports.savelocal = function(nowarning) {
+			var electronpath = require('electron').ipcRenderer.sendSync('getPath', { url: location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '') });
+			if (electronpath) {
+				var Path = require('path');
+				var filename = Path.join(electronpath, FUNC.getName(code.data.repository).replace(/\.git$/i, ''), code.editor.path);
+				FUNC.mkdir(Path.dirname(filename));
+				var val = editor.editor.getValue();
+				require('fs').writeFile(filename, code.NOTRIM[code.current.ext] ? val : FUNC.rtrim(val), function(err) {
+					if (err)
+						FUNC.warning(err.toString());
+					else
+						FUNC.success('<b>{0}</b> saved.'.format(filename));
+				});
+			} else if (!nowarning)
+				FUNC.warning('@(You don\'t have defined repository path.)');
+		};
+
+		exports.savelocalchanges = function(nowarning) {
+			var electronpath = require('electron').ipcRenderer.sendSync('getPath', { url: location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '') });
+			if (electronpath) {
+
+				var Path = require('path');
+				var Https = require('https');
+				var Http = require('http');
+				var Fs = require('fs');
+
+				SETTER('loading', 'show');
+				AJAX('GET /api/projects/{id}/changelogs/'.arg(code.data), function(response) {
+
+					response.wait(function(item, next, index) {
+
+						SET('common.percentage', (index / response.length) * 100);
+
+						var filename = Path.join(electronpath, FUNC.getName(code.data.repository).replace(/\.git$/i, ''), item.path);
+
+						if (item.removed) {
+							SETTER('loading', 'show', ('<b style="font-size:18px">{0}%</b><br /><b>@(Removing:)</b> ' + item.path).format(common.percentage >> 0));
+							Fs.unlink(filename, next);
+						} else {
+
+							SETTER('loading', 'show', ('<b style="font-size:18px">{0}%</b><br /><b>@(Saving:)</b> ' + item.path).format(common.percentage >> 0));
+
+							FUNC.mkdir(Path.dirname(filename));
+
+							var resume = function() {
+								setTimeout(next, 300);
+							};
+
+							var url = location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '') + '/api/download/{id}/?path='.arg(code.data) + encodeURIComponent(item.path);
+							var res = function(res) {
+
+								if (res.statusCode !== 200) {
+									resume();
+									return;
+								}
+
+								res.on('error', resume);
+								res.on('end', resume);
+								res.pipe(Fs.createWriteStream(filename));
+							};
+
+							url = require('url').parse(url);
+							url.headers = {};
+							url.headers['user-agent'] = navigator.userAgent;
+							url.headers.cookie = '@{config.cookie}=' + COOKIES.get('@{config.cookie}');
+
+							if (location.protocol === 'https:')
+								Https.get(url, res);
+							else
+								Http.get(url, res);
+						}
+
+					}, function() {
+						SET('common.percentage', 100);
+						SETTER('loading', 'hide');
+					});
+				});
+
+			} else if (!nowarning)
+				FUNC.warning('@(You don\'t have defined repository path.)');
+		};
+
+		exports.save = function(close, sync) {
+
+			if (BLOCKED('code_saving', 1000))
+				return;
+
+			SETTER('loading', 'show');
+
+			setTimeout(function() {
+
+				editor.flush();
+
+				var data = {};
+				var val = editor.editor.getValue();
+				var changes = $('.cm-diff').length;
+
+				data.body = code.NOTRIM[code.current.ext] ? val : FUNC.rtrim(val);
+
+				var hashsum = HASH(data.body);
+				if (hashsum === code.current.hashsum && !changes) {
+					code.current.hashsum = hashsum;
+					AJAX('GET /api/projects/{id}/modify/ REPEAT'.arg(code.data), { path: code.editor.path });
+					SETTER('loading', 'hide');
+					return;
+				}
+
+				var now = Date.now();
+				var isminified = /(\.|-)min(\.|@|-)/.test(code.editor.path) || (/\.(log|txt|md)$/).test(code.editor.path);
+
+				data.diff = editor.getDiff();
+				data.changes = changes;
+				data.path = code.editor.path;
+				data.combo = isminified ? 0 : FIND('combo').summarize();
+				data.todo = isminified ? EMPTYARRAY : code.data.todocurrent && code.data.todocurrent.length ? code.data.todocurrent : null;
+				data.parts = isminified || code.editor.path.substring(0, 9) === '/scripts/' ? EMPTYARRAY : code.components;
+
+				// Update hashsum
+				code.data.hashsum = hashsum;
+
+				if (!isminified) {
+					var parts = code.componentsdb.findItem('path', data.path);
+					if (parts == null) {
+						parts = {};
+						parts.path = data.path;
+						parts.items = data.parts;
+						code.componentsdb.push(parts);
+					} else
+						parts.items = data.parts;
+
+					UPD('code.componentsdb');
+				}
+
+				if (code.current.diff)
+					code.current.diff = data.diff;
+
+
+				// Time is sent in seconds
+
+				var diff = Math.ceil((now - code.lastchange) / 1000);
+				var max = 80; // minutes
+
+				if ((diff / 60) < max)  // minutes
+					data.time = Math.ceil((now - code.current.time) / 1000);
+				else
+					data.time = Math.ceil((code.lastchange - code.current.time) / 1000);
+
+				// Limit
+				if (data.time > ((max + 1) * 60))
+					data.time = (max + 1) * 60;
+
+				if (common.plustimespent)
+					data.time += common.plustimespent;
+
+				code.current.time = now;
+				code.lastchange = now;
+
+				if (sync)
+					data.sync = sync;
+
+				code.current.modified = false;
+				exports.cache_rem(code.current.path);
+				exports.element.find('section.tabs').find('span[data-value="{0}"]'.format(code.current.path)).rclass('modified');
+
+				// Internal timers
+				clearTimeout2('code.modified');
+				clearTimeout2('EditorGutterColor');
+
+				AJAX('POST /api/files/{id}/ REPEAT'.arg(code.data), data, function(response) {
+
+					SETTER('loading', 'hide', 500);
+
+					if (close === true)
+						exports.closeforce();
+
+					editor.diffgutterclear();
+					FUNC.wssend({ TYPE: 'save', connid: common.id, projectid: code.projectid, id: user.id, user: user.name });
+					FUNC.success((response.value === 'synchronized' ? '@(<b>{0}</b> saved and synchronized)' : '@(<b>{0}</b> saved)').format(data.path));
+					common.electron && code.data.repository && user.localsave && exports.savelocal();
+					SET('code.current.lastmodified', { user: user.name, updated: new Date() });
+					data.diff.length && UPD('code.current.diff');
+				});
+
+			}, 300);
+		};
+
+		exports.savetabs = function() {
+
+			var arr = [];
+
+			if (code.current) {
+				for (var i = 0; i < code.open.length; i++) {
+					var tab = code.open[i];
+					var data = {};
+					data.path = tab.path;
+					if (tab) {
+						if (tab.path === code.current.path)
+							data.focused = true;
+						arr.push(data);
+					}
+				}
+			}
+
+			localStorage.setItem(code.data.id + '_tabs', STRINGIFY(arr));
+		};
+
+		exports.restoretabs = function() {
+			var open = localStorage.getItem(code.data.id + '_tabs');
+			if (!open)
+				return;
+
+			open = PARSE(open);
+
+			var selected = null;
+			var tabs = [];
+
+			for (var i = 0; i < open.length; i++) {
+				var tab = open[i];
+				var fileindex = code.data.files.indexOf(tab.path);
+				if (fileindex !== -1) {
+					tab.name = code.data.files[fileindex];
+					if (tab.name) {
+						tab.name = tab.name.split('/');
+						tab.name = tab.name[tab.name.length - 1];
+						tab.body = '';
+						tab.skip = true;
+						tabs.push(tab);
+					}
+
+					if (tab.focused) {
+						delete tab.focused;
+						selected = tab;
+					}
+				}
+			}
+
+			tabs.length && SET('code.open', tabs);
+			selected && exports.open({ children: null, path: selected.path, name: selected.name });
+		};
+
+		var colorclasses = {};
+
+		exports.collaboration = function(msg) {
+
+			if (code.data == null)
+				return;
+
+			if (msg.projectid === code.data.id)
+				SET('code.usersproject', msg.project);
+
+			if (code.editor && msg.projectid === code.data.id && msg.fileid === code.editor.path) {
+				SET('code.usersfile', msg.file);
+				var colors = [];
+				for (var i = 0; i < msg.file.length; i++) {
+					var usr = msg.file[i];
+					usr.color = Thelpers.initials(usr.name, true);
+				}
+				colors.length && CSS(colors.join(''));
+			}
+
+			if (msg.fileid === code.editor.path) {
+
+				editor && editor.clearmarkers();
+				$('#body').tclass('warning', code.usersfile && code.usersfile.length > 1);
+
+				var is = !!(code.usersfile && code.usersfile.length > 1);
+				SET('code.multiple', is);
+
+				// auto-sync
+				if (is) {
+					if (common.id === msg.connid) {
+						code.issyncing = true;
+						SETTER('loading', 'show');
+						setTimeout(exports.syncdata, 1000);
+					}
+				}
+			}
+		};
+
+		exports.statusform = function(name, value, type) {
+
+			if (name instanceof jQuery) {
+
+				var dname = name.attrd('name');
+				var opt;
+
+				if (dname === 'directory') {
+					opt = {};
+					opt.element = name;
+					opt.offsetY = -50;
+					opt.offsetX = -20;
+					opt.position = 'bottom';
+					opt.items = [];
+
+					var directory = {};
+
+					for (var i = 0; i < code.tree.length; i++)
+						directory[code.tree[i].name] = 1;
+
+					if (!directory.bundles)
+						opt.items.push({ name: '<strong>@(Create):</strong> /bundles', icon: '!far fa-folder', value: 'bundles' });
+
+					if (!directory.components)
+						opt.items.push({ name: '<strong>@(Create):</strong> /components', icon: '!far fa-folder', value: 'components' });
+
+					if (!directory.controllers)
+						opt.items.push({ name: '<strong>@(Create):</strong> /controllers', icon: '!far fa-folder', value: 'controllers' });
+
+					if (!directory.databases)
+						opt.items.push({ name: '<strong>@(Create):</strong> /databases', icon: '!far fa-folder', value: 'databases' });
+
+					if (!directory.definitions)
+						opt.items.push({ name: '<strong>@(Create):</strong> /definitions', icon: '!far fa-folder', value: 'definitions' });
+
+					if (!directory.models)
+						opt.items.push({ name: '<strong>@(Create):</strong> /models', icon: '!far fa-folder', value: 'models' });
+
+					if (!directory.modules)
+						opt.items.push({ name: '<strong>@(Create):</strong> /modules', icon: '!far fa-folder', value: 'modules' });
+
+					if (!directory.operations)
+						opt.items.push({ name: '<strong>@(Create):</strong> /operations', icon: '!far fa-folder', value: 'operations' });
+
+					if (!directory.packages)
+						opt.items.push({ name: '<strong>@(Create):</strong> /packages', icon: '!far fa-folder', value: 'packages' });
+
+					if (!directory.plugins)
+						opt.items.push({ name: '<strong>@(Create):</strong> /plugins', icon: '!far fa-folder', value: 'plugins' });
+
+					if (!directory.public)
+						opt.items.push({ name: '<strong>@(Create):</strong> /public', icon: '!far fa-folder', value: 'public' });
+
+					if (!directory.resources)
+						opt.items.push({ name: '<strong>@(Create):</strong> /resources', icon: '!far fa-folder', value: 'resources' });
+
+					if (!directory.schemas)
+						opt.items.push({ name: '<strong>@(Create):</strong> /schemas', icon: '!far fa-folder', value: 'schemas' });
+
+					if (!directory.scripts)
+						opt.items.push({ name: '<strong>@(Create):</strong> /scripts', icon: '!far fa-folder', value: 'scripts' });
+
+					if (!directory.tasks)
+						opt.items.push({ name: '<strong>@(Create):</strong> /tasks', icon: '!far fa-folder', value: 'tasks' });
+
+					if (!directory.themes)
+						opt.items.push({ name: '<strong>@(Create):</strong> /themes', icon: '!far fa-folder', value: 'themes' });
+
+					if (!directory.threads)
+						opt.items.push({ name: '<strong>@(Create):</strong> /threads', icon: '!far fa-folder', value: 'threads' });
+
+					if (!directory.views)
+						opt.items.push({ name: '<strong>@(Create):</strong> /views', icon: '!far fa-folder', value: 'views' });
+
+					if (!directory.updates)
+						opt.items.push({ name: '<strong>@(Create):</strong> /updates', icon: '!far fa-folder', value: 'updates' });
+
+					if (!directory.workers)
+						opt.items.push({ name: '<strong>@(Create):</strong> /workers', icon: '!far fa-folder', value: 'workers' });
+
+					opt.callback = function(item) {
+						exports.statusform('directory', item.value);
+						SET('code.statusform.name', '');
+					};
+
+					if (opt.items.length)
+						SETTER('menu', 'show', opt);
+
+				} else if (dname === 'file') {
+					opt = {};
+					opt.element = name;
+					opt.offsetY = -50;
+					opt.offsetX = 20;
+					opt.position = 'bottom';
+					opt.items = [];
+
+					var files = {};
+
+					for (var i = 0; i < code.tree.length; i++)
+						files[code.tree[i].name] = 1;
+
+					if (!files['.bundleignore'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /.bundleignore', icon: '!far fa-file-text-o', value: '.bundleignore' });
+
+					if (!files['.gitignore'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /.gitignore', icon: '!far fa-file-text-o', value: '.gitignore' });
+
+					if (!files.config)
+						opt.items.push({ name: '<strong>@(Create):</strong> /config', icon: '!far fa-file-text-o', value: 'config' });
+
+					if (!files['config-release'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /config-release', icon: '!far fa-file-text-o', value: 'config-release' });
+
+					if (!files['config-debug'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /config-debug', icon: '!far fa-file-text-o', value: 'config-debug' });
+
+					if (!files['license.txt'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /license.txt', icon: '!far fa-file-text-o', value: 'license.txt' });
+
+					if (!files['package.json'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /package.json', icon: '!far fa-file-text-o', value: 'package.json' });
+
+					if (!files['openplatform.json'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /openplatform.json', icon: '!far fa-file-text-o', value: 'openplatform.json' });
+
+					if (!files['readme.api'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /readme.api', icon: '!far fa-file-text-o', value: 'readme.api' });
+
+					if (!files['readme.md'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /readme.md', icon: '!far fa-file-text-o', value: 'readme.md' });
+
+					if (!files['readme.todo'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /readme.todo', icon: '!far fa-file-text-o', value: 'readme.todo' });
+
+					if (!files['sitemap'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /sitemap', icon: '!far fa-file-text-o', value: 'sitemap' });
+
+					if (!files['versions'])
+						opt.items.push({ name: '<strong>@(Create):</strong> /versions', icon: '!far fa-file-text-o', value: 'versions' });
+
+					opt.callback = function(item) {
+						exports.statusform('file', item.value);
+						SET('code.statusform.name', '');
+					};
+
+					if (opt.items.length)
+						SETTER('menu', 'show', opt);
+				}
+
+				// element
+				SET('code.statusform.path', '');
+				SET('code.statusform.name', dname);
+				return;
+			}
+
+			if (!value)
+				return;
+
+			var data = {};
+
+			data.path = (code.statusform.path || '') + value;
+			data.folder = name !== 'file';
+			data.clone = type;
+
+			SETTER('!menu', 'hide');
+			SETTER('loading', 'show');
+			AJAX('POST /api/files/{id}/create/'.arg(code.data), data, function(response) {
+				SETTER('loading', 'hide', 500);
+				if (response.success)
+					exports.load(code.data.id, true);
+				else
+					FUNC.warning(response);
+			});
+		};
+
+		exports.usersonline = function(el) {
+			AJAX('GET /api/users/online/', function(response) {
+				SETTER('infopanel', 'show', el, function(el) {
+
+					var builder = [];
+					for (var i = 0; i < 10; i++) {
+						var user = response[i];
+						if (user == null)
+							break;
+						builder.push('<div class="infopanel-online">{0}<div><b>{1}</b><span>{2}</span></div></div>'.format(Thelpers.initials(user.name), user.name, user.project || '@(No file open)'));
+					}
+
+					!builder.length && FUNC.warning('@(No-one works.)');
+					el.html(builder.join(''));
+				}, 0, -20);
+			});
+		};
+
+		exports.warnings = function(el, e) {
+			SETTER('infopanel', 'show', el, function(el) {
+				var builder = [];
+				for (var i = 0; i < 10; i++) {
+					var err = code.errors && code.errors[i];
+					err && builder.push('<div class="infopanel-line exec" data-exec="code/warnings_goto" data-pos="{1}x{2}"><b>:{1}</b><span>{0}</span></div>'.format(err.reason || err.raw, err.line, err.character));
+				}
+				!builder.length && FUNC.warning('@(File doesn\'t contain any warnings.)');
+				el.html(builder.join(''));
+			});
+		};
+
+		exports.warnings_goto = function(el) {
+			var pos = el.attrd('pos').split('x');
+			editor.editor.setCursor({ line: +pos[0] - 1, char: +pos[1] }, 200);
+			editor.editor.focus();
+		};
+
+		exports.cursorposition = function(editor) {
+
+			var a = editor.getCursor(true);
+			var b = editor.getCursor(false);
+
+			code.cursor.fline = a.line;
+			code.cursor.fch = a.ch;
+			code.cursor.tline = b.line;
+			code.cursor.tch = b.ch;
+
+			if (code.usersfile.length > 1 && code.SYNC) {
+				code.cursor.projectid = code.projectid;
+				setTimeout2('cursorposition', function() {
+					FUNC.wssend(code.cursor);
+				}, 300);
+			}
+
+			BIND('code.cursor');
+
+			setTimeout2('savescrollposition', function(editor) {
+				if (!code.editor.loaded || code.issyncing || !code.editor.loadedcache)
+					return;
+				var info = editor.getScrollInfo();
+				var key = code.projectid + '_scroll';
+				if (info.left || info.top || a.line) {
+					cache_scrollpos.x = info.left;
+					cache_scrollpos.y = info.top;
+					cache_scrollpos.line = a.line;
+					cache_scrollpos.ch = a.ch;
+					localStorage.setItem(key, STRINGIFY(cache_scrollpos));
+				} else
+					localStorage.removeItem(key);
+			}, 300, null, editor);
+		};
+
+		WATCH('common.form', function(path, value) {
+			$(document.body).tclass('codepanel', !!value);
+		});
+
+		exports.tablocked = function() {
+			if (!code.current.skip) {
+				code.current.skip = true;
+				exports.element.FIND('tabmenu').element.find('span[data-value="{0}"]'.format(code.current.path)).rclass('nolocked');
+			}
+		};
+
+		// Internal cache
+		// For unexpect of closing browser
+		exports.cache_set = function() {
+			if (code.editor.path) {
+				var key = code.data.id + '_' + code.editor.hash;
+				localStorage.setItem(key, code.editor.body);
+			}
+		};
+
+		exports.cache_get = function(path) {
+			if (path) {
+				var key = code.data.id + '_' + HASH(path);
+				return localStorage.getItem(key);
+			}
+		};
+
+		exports.cache_getscroll = function(path) {
+			if (path) {
+				var key = code.projectid + '_scroll';
+				var obj = localStorage.getItem(key);
+				return obj ? PARSE(obj) : null;
+			}
+		};
+
+		exports.cache_rem = function() {
+			if (code.editor.path) {
+				var key = code.data.id + '_' + HASH(code.editor.path);
+				localStorage.removeItem(key);
+			}
+		};
+
+		exports.timespent = function() {
+			SET('common.form', 'timespentform');
+		};
+
+		exports.clipboard = function() {
+			TOGGLE('common.clipboard');
+		};
+
+		exports.review = function(el) {
+
+			if (!code.data.review) {
+				SETTER('message', 'warning', '@(You do not have defined a <b>token</b> for code review. Click on the <b>Settings</b> button and set the token.)');
+				return;
+			}
+
+			SETTER('confirm', 'show2', '@(Are you sure you want to send this file for <b>Code Review</b>?)', ['"check-circle" @(Review code) #98BF61', '@(Cancel)'], function(index) {
+				AJAX('GET /api/projects/{id}/review/?path='.arg(code.data) + encodeURIComponent(code.editor.path), FUNC.messageresponse('<b><i class="fa fa-check mr5 green"></i>@(DONE)</b><br />@(File has been sent for code review successfully.)'));
+			});
+		};
+
+		exports.diff = function(el) {
+
+			var changes = code.current.changes;
+			var curr = code.current;
+			var line = editor.editor.getCursor().line;
+			var type = el.attr('name');
+			var next = -1;
+
+			if (type === 'prev')
+				line--;
+			else
+				line++;
+
+			for (var i = 0; i < changes.length; i++) {
+				var chl = changes[i];
+				if (chl === line) {
+					next = i;
+					break;
+				}
+			}
+
+			if (next === -1) {
+
+				if (type === 'next') {
+					for (var i = 0; i < changes.length; i++) {
+						var chl = changes[i];
+						if (chl >= line) {
+							next = i;
+							break;
+						}
+					}
+				} else {
+					for (var i = changes.length; i > -1; i--) {
+						var chl = changes[i];
+						if (chl <= line) {
+							next = i;
+							break;
+						}
+					}
+				}
+
+				if (next === -1)
+					next = changes[type === 'prev' ? changes.length - 1 : 0];
+				else
+					next = changes[next];
+
+			} else {
+
+				if (type === 'next') {
+					next = changes[next + 1];
+					if (next == null)
+						next = changes[0];
+				} else {
+					next = changes[next - 1];
+					if (next == null)
+						next = changes[changes.length - 1];
+				}
+
+				if (next == null)
+					next = -1;
+			}
+
+			if (next > -1)
+				editor.editor.setCursor({ line: next - 1, ch: 0 });
+		};
+
+		WATCH('common.powermode', function(path, value) {
+			SETTER(true, 'editor', 'reconfigure', 'powermode:' + (value ? '1' : '0'));
+			BIND('code.editor.path');
+		}, true);
+
+		WATCH('common.clipboard', function(path, value) {
+			var is = value === true;
+			var el = $('#clipboard').tclass('hidden', is == false);
+			if (is) {
+				clipboardresize();
+				setTimeout(function() {
+					el.find('textarea').focus();
+				}, 500);
+			}
+		}, true);
+
+		WATCH('code.current.diff', function(path, value) {
+
+			if (!value)
+				return;
+
+			var users = {};
+			for (var i = 0; i < code.data.users.length; i++) {
+				var usr = code.data.users[i];
+				users[usr.id] = usr.name;
+			}
+
+			for (var i = 0; i < value.length; i++) {
+				var diff = value[i];
+				editor.diffuser(diff.line - 1, diff.userid, users[diff.userid] || '', diff.updated);
+			}
+		});
+
+		$('#clipboardbody').on('input', function() {
+			var el = this;
+			setTimeout2('clipboardsave', function(el) {
+				AJAX('POST /api/clipboard/', { body: el.value });
+			}, 1000, null, el);
+		});
+
+		var iscolor = false;
+
+		$(document).on('mousedown', '.cm-atom', function(e) {
+			var html = this.innerHTML;
+			if (html.charAt(0) === '#') {
+				$('#currentcolor').css('background-color', html).attrd('color', html).rclass('hidden');
+				iscolor = true;
+				setTimeout2('iscolor', function() {
+					iscolor = false;
+				}, 500);
+			}
+		}).on('mousedown', function(e) {
+			if (iscolor)
+				return;
+			if (e.target.id === 'currentcolor')
+				SETTER('clipboard', 'copy', e.target.getAttribute('data-color'));
+			$('#currentcolor').aclass('hidden');
+		});
+	});
+
+</script>

@@ -1,0 +1,601 @@
+@{layout('')}
+@{title(config.name)}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=10" />
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+	<meta name="robots" content="all,follow" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+	<meta name="apple-mobile-web-app-title" content="@{'%name'}" />
+	<link rel="stylesheet" href="/css/cdn.min.css" />
+	<script src="/js/cdn.min.js"></script>
+	@{import('meta', 'head', 'default.css', 'default.js', 'favicon.ico')}
+</head>
+<body data---="exec" class="@{if (user.darkmode === 2 && (NOW.getHours()<=6 || NOW.getHours()>=18)) || (user.darkmode !== 0 && user.darkmode !== 2)}td @{fi}invisible" data-jc-class="invisible">
+
+	<div class="bbfooter"></div>
+
+	<div data---="loading" class="ui-loading"><div></div></div>
+	<div data---="LAZY suggestion__null__placeholder:@(Search)"></div>
+	<div data---="LAZY autocomplete__null__height:200"></div>
+	<div data---="LAZY snackbar__null__button:@(OK)"></div>
+	<div data---="LAZY features__null__placeholder:@(What are you looking for?)"></div>
+	<div data---="LAZY tooltip"></div>
+	<div data---="clipboard"></div>
+	<div data---="directory__null__placeholder:@(Search)"></div>
+	<div data---="infopanel"></div>
+	<div data---="menu" class="hidden"></div>
+	<div data---="confirm"></div>
+	<div data---="shortcuts__null"></div>
+	<div data---="mainprogress__common.percentage"></div>
+	<div data---="LAZY message__null__button:@(OK)"></div>
+	<div data---="LAZY emoji"></div>
+	<div data---="LAZY colorpicker"></div>
+	<div data---="windows__windows"></div>
+
+	<div class="windowtitlebar" data-bind="document.title__text">@{config.name}</div>
+
+	<header>
+		<button class="exec" data-exec="mainmenu"><i class="fa fa-navicon"></i></button>
+		<span class="version hidden" data-bind="common.page__show:value === 'code'">v@{MAIN.version}</span>
+		<div class="tools" data-jc="selected__common.page__selector:a.R">
+			<a href="@{#}/" title="@(Code)" class="R" data-if="code"><i class="fa fa-laptop-code"></i></a>
+			<a href="javascript:void(0)" data-exec="code/messenger" title="@(Support)" class="external exec"><i class="far fa-comments"></i></a>
+			<a href="#" data-bind="code.data.documentation__show__href" title="@(Documentation)" target="_blank" class="external hidden"><i class="fa fa-book-open"></i></a>
+			@{if user.sa}
+			<a href="@{#}/projects/" title="@(Projects)" class="R" data-if="projects"><i class="fa fa-code-branch"></i></a>
+			<a href="@{#}/users/" title="@(Users)" class="R" data-if="users"><i class="fa fa-users"></i></a>
+			<a href="@{#}/timespent/" title="@(Time spent)" class="R" data-if="timespent"><i class="far fa-calendar"></i></a>
+			<!--
+			<a href="@{#}/snippets/" title="@(Snippets)" class="R" data-if="snippets"><i class="far fa-clone"></i></a>
+			-->
+			@{fi}
+			<a href="@{#}/settings/" title="@(My settings)" class="R" data-if="settings"><i class="fa fa-user-cog"></i></a>
+			<a href="@{#}/logout/" title="@(Sign out)" class="red2"><i class="fa fa-sign-out"></i></a>
+		</div>
+	</header>
+
+	<div data---="part__common.page__if:code;url:/parts/code.html;reload:code/reload"></div>
+	<div data---="part__common.page__if:snippets;url:/parts/snippets.html;reload:snippets/reload;cleaner:10"></div>
+	<div data---="part__common.page__if:projects;url:/parts/projects.html;reload:projects/reload;cleaner:10"></div>
+	<div data---="part__common.page__if:users;url:/parts/users.html;reload:users/reload;cleaner:10"></div>
+	<div data---="part__common.page__if:settings;url:/parts/settings.html;reload:settings/reload;cleaner:10"></div>
+	<div data---="part__common.page__if:timespent;url:/parts/timespent.html;reload:timespent/reload;cleaner:10"></div>
+	<div data---="websocket__null__url:/"></div>
+
+	<div data---="importer__common.form__if:bundles;url:/forms/bundles.html;cleaner:10"></div>
+	<div data---="importer__common.form__if:templates;url:/forms/templates.html;cleaner:10"></div>
+	<div data---="importer__common.form__if:packages;url:/forms/packages.html;cleaner:10"></div>
+	<div data---="importer__common.form__if:modules;url:/forms/modules.html;cleaner:10"></div>
+	<div data---="importer__common.form__if:schemas;url:/forms/schemas.html;cleaner:10"></div>
+	<div data---="importer__common.form__if:operations;url:/forms/operations.html;cleaner:10"></div>
+
+	@{json(user, 'userdata')}
+
+	<script>
+
+		var user = PARSE('#userdata');
+		var EDITOR = null;
+		var windows = [];
+
+		FIND('editor', function(com) {
+			EDITOR = com;
+		});
+
+		CONFIG('panel', function() {
+			return (/projectsform|usersform|snippetsform/).test(this.config.if) ? '' : (common.electron ? ('top:' + (common.ismac ? '50' : '28')) : 'top:49');
+		});
+
+		MAKE('common', function(common) {
+
+			common.id = GUID(5);
+			common.idletime = 0;
+			common.plustimespent = 33;
+			common.electron = navigator.userAgent.indexOf('Electron') !== -1 && window.require != null;
+			common.ismac = navigator.platform.substring(0, 3) === 'Mac';
+			common.token = '@{PREF.token}';
+
+			if (common.electron && !common.ismac)
+				$('header').aclass('electron-header-border');
+
+			if (!common.recent)
+				common.recent = [];
+
+			common.online = true;
+			common.name = document.title;
+
+			if (common.powermode == null)
+				common.powermode = true;
+
+			if (common.powermodeshaking == null)
+				common.powermodeshaking = false;
+
+			if (common.showparts == null)
+				common.showparts = true;
+		});
+
+		common.init = false;
+
+		if (common.electron) {
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+			common.META = require('electron').remote.getGlobal('META') || EMPTYOBJECT;
+			if (common.META.version && navigator.userAgent.indexOf('Macintosh') !== -1)
+				$('body').aclass('electron');
+		}
+
+		CACHEPATH('common.recent', '1 year');
+		CACHEPATH('common.showparts', '1 year');
+		CACHEPATH('common.powermode', '1 year');
+		CACHEPATH('common.powermodeshaking', '1 year');
+		CACHEPATH('common.clipboard', '1 year');
+
+		ENV('date', 'yyyy-MM-dd HH:mm');
+
+		NAV.clientside('.R');
+
+		ROUTE('/', function() {
+			SET('common.form', '');
+			SET('common.debug', false);
+			SET('common.page', 'code');
+		});
+
+		ROUTE('/settings/', function() {
+			SET('common.form', '');
+			SET('common.debug', false);
+			SET('common.page', 'settings');
+		});
+
+		ROUTE('/users/', function() {
+			SET('common.form', '');
+			SET('common.debug', false);
+			SET('common.page', 'users');
+		});
+
+		ROUTE('/projects/', function() {
+			SET('common.form', '');
+			SET('common.debug', false);
+			SET('common.page', 'projects');
+		});
+
+		ROUTE('/timespent/', function() {
+			SET('common.form', '');
+			SET('common.debug', false);
+			SET('common.page', 'timespent');
+		});
+
+/*
+		ROUTE('/snippets/', function() {
+			SET('common.debug', false);
+			SET('common.form', '');
+			SET('common.page', 'snippets');
+		});
+*/
+
+		ON('online', function(is) {
+
+			SETTER('loading', is ? 'hide' : 'show');
+
+			if (is && window.code && window.code.data) {
+				// maybe sleeping computer
+				FUNC.wsopen(code.data.id, code.editor ? code.editor.path : '', code.projectid);
+				common.online && common.init && EXEC('code/reload');
+			}
+
+			SET('common.online', is);
+			!is && SET('common.debug', false);
+
+			if (is && !common.init)
+				common.init = true;
+		});
+
+		ON('message', function(msg) {
+			switch (msg.TYPE) {
+				case 'blocked':
+					location.href = '/';
+					break;
+				case 'exit':
+					// close all projects
+					location.href = '/offline/';
+					break;
+				case 'open':
+
+					if (code.data && code.current && msg.connid !== common.id && msg.projectid === code.data.id && msg.fileid === code.current.path)
+						PLUGINS.code.readonly(true);
+
+					PLUGINS.code.collaboration(msg);
+					break;
+				case 'close':
+
+					if (code.current && msg.fileid === code.current.path)
+						PLUGINS.code.readonly(false);
+
+					PLUGINS.code.collaboration(msg);
+					break;
+				case 'sync':
+					if (code.SYNC && msg.projectid === code.projectid && msg.connid !== common.id) {
+						var data = PARSE(msg.data);
+						code.SYNC = false;
+						code.SYNCUSER = msg.userid;
+						code.SYNCID = msg.connid;
+						EDITOR.editor.replaceRange(data.text, data.from, data.to);
+						var history = EDITOR.editor.doc.history.done;
+						history.pop();
+						history.pop();
+						code.SYNC = true;
+					}
+					break;
+
+				case 'syncsend':
+					if (msg.projectid === code.projectid && msg.connid !== common.id) {
+						EXEC('code/readonly', true);
+						code.SYNC = false;
+						clearTimeout(common.synctimeout);
+						common.synctimeout = null;
+						if (msg.fromid === user.id) {
+							var cm = EDITOR.editor;
+							msg.TYPE = 'syncbody';
+							msg.body = cm.getValue();
+							msg.diff = EDITOR.getDiff();
+							FUNC.wssend(msg);
+						}
+					}
+					break;
+
+				case 'syncbody':
+
+					if (msg.projectid === code.projectid && msg.connid === common.id) {
+						clearTimeout(common.synctimeout);
+						common.synctimeout = null;
+						code.SYNC = false;
+						msg.TYPE = 'syncdone';
+						code.issyncing = false;
+						EDITOR.editor.replaceRange(msg.body, { line: 0, ch: 0 }, { line: EDITOR.editor.lineCount() + 1, ch: 0 });
+						var history = EDITOR.editor.doc.history.done;
+						history.pop();
+						history.pop();
+						PLUGINS.code.restoreposition(true);
+						PLUGINS.code.readonly(true);
+						SET('code.current.diff', msg.diff);
+						msg.body = null;
+						msg.diff = null;
+						FUNC.wssend(msg);
+					}
+					break;
+
+				case 'syncdone':
+					if (msg.projectid === code.projectid) {
+						clearTimeout(common.synctimeout);
+						common.synctimeout = null;
+						code.SYNC = true;
+						code.issyncing = false;
+						SET('code.backup', false);
+						SET('code.multiple', false);
+						PLUGINS.code.readonly(false);
+						SETTER('loading', 'hide');
+					}
+					break;
+
+				case 'synccur':
+					if (msg.projectid === code.projectid && msg.connid !== common.id && code.SYNC)
+						PLUGINS.code.synccursor(msg);
+					break;
+				case 'save':
+					if (W.code) {
+						if (msg.projectid === code.projectid && msg.connid !== common.id)
+							PLUGINS.code.syncsave(msg);
+						else if (code) {
+							msg.date = new Date();
+							code.changes[msg.projectid] = msg;
+						}
+					}
+
+					break;
+				case 'refresh':
+					location.reload(true);
+					break;
+			}
+		});
+
+		SETTER(true, 'shortcuts', 'register', 'F1', function(e) {
+
+			var arr = [];
+
+			arr.push({ name: '@(Help)', id: 'help', icon: 'life-ring' });
+			arr.push({ name: '@(Pause)', id: 'pause', icon: 'pause' });
+
+			if (common.page === 'code' && W.code && W.code.data) {
+
+				for (var i = 0; i < code.data.files.length; i++) {
+					var file = code.data.files[i];
+					arr.push({ name: file, icon: 'file-o', filename: FUNC.getName(file) });
+				}
+
+				arr.quicksort('name');
+
+				if (code.data && code.data.id)
+					arr.unshift({ name: '@(Changes)', id: 'changes', icon: 'clock-o' });
+
+				if (code.components && code.components.length)
+					arr.unshift({ name: '@(Used parts)', id: 'components', icon: 'puzzle-piece' });
+
+				if (code.data && code.data.id)
+					arr.unshift({ name: '@(Translate application)', id: 'localize', icon: 'language', keywords: 'localize' });
+
+				if (code.data && code.editor && code.editor.loaded)
+					arr.unshift({ name: '@(Translate file)', id: 'translate', icon: 'language', keywords: 'localize' });
+
+				arr.unshift({ name: '@(Show logfile)', id: 'logfile', icon: 'bug' });
+				arr.push({ name: '@(Clipboard)', id: 'clipboard', icon: 'clipboard' });
+
+				if (code.editor.path) {
+					arr.unshift({ name: '@(Insert UI components)', id: 'componentator', icon: 'puzzle-piece' });
+					arr.unshift({ name: '@(Save)', id: 'save', icon: 'floppy-o' });
+					arr.unshift({ name: '@(Reload)', id: 'reload', icon: 'refresh', keywords: 'refresh' });
+					code.data.review && arr.unshift({ name: '@(Code review)', id: 'review', icon: 'check-circle green' });
+					arr.unshift({ name: '@(History &amp; Backups)', id: 'history', icon: 'history', keywords: 'backups' });
+				}
+
+				arr.push({ name: '@(Clear the project)', id: 'removeall', icon: 'trash-o' });
+			}
+
+			SETTER('features', 'show', arr, function(value) {
+
+				if (value.filename) {
+					EXEC('code/open', { path: value.name, name: value.filename });
+				} else {
+					switch (value.id) {
+						case 'removeall':
+							SETTER('confirm', 'show', '@(Are you sure you want to clear the project?)', ['"trash-o" @(Remove)', '@(Cancel)'], function(index) {
+								if (index)
+									return;
+
+								SETTER('loading', 'show');
+								var allowed = { logs: 1, 'debug.js': 1, 'release.js': 1, 'debug.pid': 1 };
+								code.tree.wait(function(item, next) {
+
+									if (allowed[item.name]) {
+										next();
+										return;
+									}
+
+									var data = {};
+									data.path = item.path;
+									AJAX('POST /api/files/{id}/remove/'.arg(code.data), data, next);
+								}, function() {
+									SETTER('loading', 'hide');
+									EXEC('code/refresh');
+									FUNC.success('@(The project has been cleared successfully.)');
+								});
+							});
+
+							break;
+						case 'help':
+							window.open('https://wiki.totaljs.com/code/01-welcome/');
+							break;
+						case 'pause':
+							location.href = $('.pause').attr('href');
+							break;
+						case 'reload':
+							FUNC.editor_reload();
+							break;
+						case 'history':
+							SET('common.form', 'backups');
+							break;
+						case 'changes':
+						case 'save':
+						case 'review':
+						case 'translate':
+						case 'clipboard':
+						case 'localize':
+							EXEC('code/' + value.id);
+							break;
+						case 'componentator':
+						case 'components':
+							SET('common.form', value.id);
+							break;
+						case 'logfile':
+							TOGGLE('common.debug');
+							break;
+					}
+				}
+			}, function(search) {
+				// fallback
+				if (search.charAt(0) === ':') {
+					// go to line
+					setTimeout(function() {
+						var tmp = search.split(':').trim();
+						SETTER('editor', 'gotoline', (tmp[0] || '').parseInt(), (tmp[1] || '').parseInt());
+					}, 500);
+					return;
+				} else if (search.toLowerCase().indexOf('hours') !== -1 && code.data && code.data.id) {
+					var hours = search.match(/[-0-9\,\.]+/g);
+					if (hours) {
+						var val = hours[0].parseFloat();
+						val && AJAX('POST /api/projects/{0}/hours/'.format(code.data.id), { value: val }, FUNC.messageresponse('@(Hours have been added successfully.)'));
+					}
+				}
+			});
+
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'F2', function(e) {
+			var n = 'components';
+			code.current && (/js|css|html/).test(code.current.ext) && SET('common.form', common.form === n ? '' : n);
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'F3', function(e) {
+			var n = 'componentator';
+			code.current && (/js|css|html/).test(code.current.ext) && SET('common.form', common.form === n ? '' : n);
+		}, true);
+
+		/*
+		SETTER(true, 'shortcuts', 'register', 'F4', function(e) {
+			var n = 'snippets';
+			code.current && (/js|css|html/).test(code.current.ext) && SET('common.form', common.form === n ? '' : n);
+		}, true);*/
+
+		SETTER(true, 'shortcuts', 'register', 'F6', function(e) {
+			var n = 'icons';
+			code.current && (/js|css|html/).test(code.current.ext) && SET('common.form', common.form === n ? '' : n);
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'F5', function(e) {
+			EXEC('code/shortcut', 'F5');
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'F10', function(e) {
+			code.editor && TOGGLE('common.debug');
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'F8', function(e) {
+			$('.project').trigger('click');
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'F11', function(e) {
+			code.editor && EXEC('code/clipboard');
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'ctrl+f,cmd+f', function(e) {
+			$('.search').find('input').focus();
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'ctrl+s,cmd+s', function(e) {
+			var tn = e.target ? e.target.tagName : '';
+			if (tn !== 'TEXTAREA' && tn !== 'INPUT')
+				EXEC('code/shortcut', 'save');
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'ctrl+b,cmd+b', function(e) {
+			if (!W.code || !W.code.current)
+				return;
+			// BUILD
+			if ((/\/scripts\//g).test(code.current.path)) {
+				if (code.current.ext === 'js')
+					FUNC.requestscript(code.data.id, code.current.path);
+			} else if (code.current.ext === 'api') {
+				var editor = FIND('editor').editor;
+				FUNC.request(editor.getSelections().join(''), editor.getValue());
+			}
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'alt+w,cmd+w,alt+f4', function(e) {
+			EXEC('code/shortcut', 'close');
+		}, true);
+
+		SETTER(true, 'shortcuts', 'register', 'esc', function(e) {
+
+			if (window.code && window.code.statusform)
+				SET('code.statusform', '');
+
+			SETTER('!menu', 'hide');
+		});
+
+		common.electron && window.require('electron').ipcRenderer.on('tabs.close', function() {
+			EXEC('code/close');
+		});
+
+		Thelpers.time = function(value) {
+
+			if (!value)
+				return;
+
+			var diff = Date.now() - value.parseDate().getTime();
+			var minutes = ((diff / 1000) / 60) >> 0;
+
+			if (minutes <= 1) {
+				var seconds = (diff / 1000) >> 0;
+				if (seconds < 60)
+					return seconds ? (@(seconds + ' ' + Tangular.helpers.pluralize(seconds >> 0, 'seconds', 'second', 'seconds', 'seconds') + ' ago')) : '@(now)';
+			}
+
+			if (minutes < 60)
+				return minutes < 3 ? '@(a moment ago)' : @(minutes + ' minutes ago');
+
+			var hours = (minutes / 60) >> 0;
+			if (hours < 24)
+				return @(hours + ' ' + Tangular.helpers.pluralize(hours, 'hours', 'hour', 'hours', 'hours') + ' ago');
+
+			var days = (hours / 24) >> 0;
+			if (days < 30)
+				return @(days + ' ' + Tangular.helpers.pluralize(days, 'days', 'day', 'days', 'days') + ' ago');
+
+			var months = (days / 29) >> 0;
+			if (months < 12)
+				return @(months + ' ' + Tangular.helpers.pluralize(months, 'months', 'month', 'months', 'months') + ' ago');
+
+			var years = (months / 12) >> 0;
+			return @(years + ' ' + Tangular.helpers.pluralize(years, 'years', 'year', 'years', 'years') + ' ago');
+		};
+
+		Thelpers.timespent = function(value, onlymin) {
+
+			if (onlymin == true)
+				return Math.ceil(value / 60) + '@(m)';
+
+			var minutes = Math.round(value / 60);
+
+			if (minutes > 0) {
+				var hours = Math.round(minutes / 60);
+				if (hours)
+					return hours + '@(h)';
+				return minutes + '@(m)';
+			}
+			return value + '@(s)';
+		};
+
+		FUNC.autodarkmode = function() {
+			var h = NOW.getHours();
+			if (user.darkmode === 2) {
+				var dark = h <= 6 || h >= 18;
+				var body = $('body');
+				var is = body.hclass('td');
+				if (dark) {
+					if (!is)
+						body.aclass('td')
+				} else {
+					if (is)
+						body.rclass('td');
+				}
+			}
+		};
+
+		ON('knockknock', function(counter) {
+
+			FUNC.autodarkmode();
+			common.idletime++;
+
+			// 7 minutes idle time
+			if (common.idletime > 7)
+				location.href = $('.pause').attr('href');
+
+		});
+
+		if (!isMOBILE) {
+			$(document).on('mouseenter mouseleave', '.cm-diff-user', function(e) {
+				if (e.type === 'mouseenter') {
+					var el = $(this);
+					var opt = {};
+					opt.element = el;
+					opt.html = el.attrd('title');
+					opt.align = 'right';
+					opt.timeout = 1500;
+					opt.offsetY = -5;
+					SETTER('tooltip', 'show', opt);
+				} else
+					SETTER('tooltip', 'hide');
+			});
+		}
+
+		$(W).on('click keypress', function (e) {
+			common.idletime = 0;
+		});
+
+	</script>
+
+</body>
+</html>

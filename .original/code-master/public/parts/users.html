@@ -1,0 +1,142 @@
+<div class="container">
+	<br />
+	<div class="fullheight">
+		<div class="toolbar toolbar-right">
+			<button class="exec" data-exec="users/execrefresh" title="Refreshes all user browsers which are online"><i class="fa fa-refresh"></i>@(Refresh browsers)</button>
+		</div>
+
+		<div class="toolbar">
+			<button class="exec" data-exec="users/create"><i class="fa fa-plus-circle"></i>@(Add)</button>
+			<button class="exec" data-exec="users/export"><i class="fa fa-cloud"></i>@(Export / Import)</button>
+			<button data-bind="users.checked__disabled:!value || !value.length" class="exec" data-exec="users/options" disabled><i class="fa fa-check-circle"></i>@(Selected)</button>
+		</div>
+
+		<div data---="datagrid__users.grid__click:users/edit;checked:users/checked;highlight:true">
+			<script type="text/plain">
+				[
+					{ name: 'id', text: '@(User ID)', template: '{{ if online }}<i class="fa fa-circle green fs11 mr5" title="@(Online)"></i>{{ fi }}{{ if blocked }}<span class="badge badge-small badge-red">@(blocked)</span>{{ fi }}{{ id }}', width: 200 },
+					{ name: 'name', text: '@(Name)', width: 200 },
+					{ name: 'email', text: '@(Email)', width: 200 },
+					{ name: 'phone', text: '@(Phone)', width: 140 },
+					{ name: 'position', text: '@(Position)', width: 150 },
+					{ name: 'sa', text: '@(Admin)', template: '{{ if sa }}<i class="fa fa-check-square green"></i>{{ fi }}', options: [{ text: 'yes', value: true }, { text: 'no', value: false }], width: 100, align: 1 },
+					{ name: 'logged', text: '@(Logged)', align: 'center', template: '{{ logged | format(\'dd.MM.yyyy\') }}', align: 1, width: 100 },
+					{ name: 'created', text: '@(Created)', align: 'center', template: '{{ created | format(\'dd.MM.yyyy\') }}', align: 1, width: 100 }
+				]
+			</script>
+		</div>
+
+	</div>
+</div>
+
+<div data---="panel__common.form__if:usersformexport;bg:true;title:@(Export/Import);icon:cloud;width:400;autofocus:true" class="hidden">
+	<div data-scope="usersformexport">
+		<div class="padding npb">
+			<div data---="textarea__?.data__required:true;height:500" class="m">@(Data)</div>
+		</div>
+		<hr />
+		<div data---="validation__?" class="padding npt">
+			<button name="submit" disabled="disabled" class="exec button button-small b" data-exec="users/import"><i class="fa fa-cloud-download"></i>Import</button>
+		</div>
+	</div>
+</div>
+
+<div data---="importer__common.form__if:usersform;url:/forms/user.html"></div>
+
+<script>
+
+	PLUGIN('users', function(exports) {
+
+		exports.create = function() {
+			SET('usersform.id', null);
+			DEFAULT('usersform.*');
+			SET('common.form', 'usersform');
+		};
+
+		exports.execrefresh = function() {
+			SETTER('confirm', 'show', '@(Are you sure you want to send refresh command?)', ['"refresh" Yes, refresh', 'Cancel'], function(index) {
+				!index && AJAX('GET /api/users/refresh/', NOOP);
+			});
+		};
+
+		exports.refresh = function() {
+			AJAX('GET /api/users/', 'users.grid');
+		};
+
+		exports.reload = function() {
+			setTimeout(EXEC2('#resize'), 100);
+			exports.refresh();
+		};
+
+		exports.checked = function(rows) {
+			SET('users.checked', rows);
+		};
+
+		exports.edit = function(row) {
+			row && AJAX('GET /api/users/{id}/'.arg(row), function(response) {
+				SETR('usersform', response);
+				SET('common.form', 'usersform');
+			});
+		};
+
+		exports.options = function(el) {
+
+			var items = [];
+
+			items.push({ value: 255, name: '@(Remove)', icon: 'times-circle red' });
+
+			SETTER('menu', 'show', 'left', el, items, function(item) {
+				switch (item.value) {
+					case 255:
+						SETTER('confirm', 'show', '@(Are you sure you want to remove selected users?)', ['"trash-o"@(Remove)', '@(Cancel)'], function(index) {
+							if (!index) {
+								SETTER('loading', 'show');
+								users.checked.wait(function(item, next) {
+									AJAX('DELETE /api/users/{id}/'.arg(item), next);
+								}, function() {
+									SETTER('loading', 'hide', 100);
+									SETTER('snackbar', 'success', '@(Selected users have been removed.)');
+									exports.refresh();
+								});
+							}
+						});
+						break;
+				}
+			});
+		};
+
+		exports.export = function() {
+			AJAX('GET /api/users/export/', function(data) {
+				SETR('usersformexport.data', ENCRYPT(data, 'totaljscode'));
+				SET('common.form', 'usersformexport');
+			});
+		};
+
+		exports.import = function() {
+
+			var data = DECRYPT(usersformexport.data, 'totaljscode');
+			if (!data) {
+				INVALID('usersformexport.data');
+				return;
+			}
+
+			var count = 0;
+
+			data.wait(function(item, next) {
+				if (!users.grid.findItem('id', item.id)) {
+					AJAX('POST /api/users/', item, function(response) {
+						count++;
+						next();
+					});
+				} else
+					next();
+			}, function() {
+				count && exports.refresh();
+				SETTER('snackbar', 'success', '@(<b>{0} users</b> have been imported successfully.)'.format(count));
+			});
+
+			NULL('common.form');
+		};
+	});
+
+</script>

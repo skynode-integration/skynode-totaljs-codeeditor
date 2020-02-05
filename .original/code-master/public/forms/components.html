@@ -1,0 +1,126 @@
+<!--
+	It depends on "code editor"
+-->
+
+<div data---="panel__common.form__if:components;width:350;title:@(Used parts);icon:puzzle-piece;bg:false;reload:components/reload;bottom:87;top:50" class="hidden">
+	<div class="padding">
+		<div data---="textbox__components.search__type:search;placeholder:@(Search);$binding:1;$delay:50"></div>
+		<!-- <div class="help"><span class="link exec" data-path="common.form" data-value="'componentator'"><i class="fa fa-plus-circle"></i>@(Insert UI components)</span></div>-->
+	</div>
+	<div data---="viewbox__components.search__height:100;margin:122;parent:.ui-panel">
+		<div class="partdocs"><a href="#" target="_blank" data-bind="code.data.id__href:'/docs/' + value + '/'"><i class="fa fa-cloud-download"></i>@(Download documentation)</a></div>
+		<div data---="search__components.search__selector:.part">
+			<div data-bind="code.components__template">
+				<script type="text/html">
+					{{ if value.length }}
+					<div class="partscurrent">
+						{{ foreach m in value }}
+							<div class="part exec" data-exec="components/find" data-search="{{ m.name }}" data-index="{{ $index }}" title="@(Line:) {{ m.line }}"><i class="fa fa-{{ if m.type === 'helper' }}align-left{{ else if m.type === 'FUNC' }}code{{ else if m.type === 'REPO' }}box{{ else if m.type === 'config' }}cog{{ else if m.type === 'plugin' }}plug{{ else if m.type === 'route' }}link{{ else if m.type === 'watcher' }}eye{{ else if m.type === 'event' }}bolt{{ else if m.type === 'middleware' }}filter{{ else if m.type === 'component' || m.type === 'extension' }}drafting-compass{{ else if m.type === 'schema' }}code-branch{{ else if m.type === 'console'}}font{{ else if m.type === 'operation' }}plug{{ else }}tasks{{ fi }}"></i>{{ m.type | parttype }}{{ m.name | partvariables }}</div>
+						{{ end }}
+					</div>
+					<br />
+					{{ fi }}
+				</script>
+			</div>
+			<div data-bind="code.componentsall__template">
+				<script type="text/html">
+					{{ foreach n in value }}
+						{{ if n.path }}
+							<div class="partgroup">{{ n.path }}</div>
+						{{ fi }}
+						{{ foreach m in n.items }}
+							<div class="part exec" data-path="{{ n.path }}" data-exec="components/open" data-line="{{ m.line }}" data-ch="{{ m.ch }}" data-search="{{ m.name }}" data-index="{{ $index }}" title="@(Line:) {{ m.line }}"><i class="fa fa-{{ if m.type === 'helper' }}align-left{{ else if m.type === 'FUNC' }}code{{ else if m.type === 'REPO' }}box{{ else if m.type === 'config' }}cog{{ else if m.type === 'plugin' }}plug{{ else if m.type === 'route' }}link{{ else if m.type === 'watcher' }}eye{{ else if m.type === 'event' }}bolt{{ else if m.type === 'middleware' }}filter{{ else if m.type === 'component' || m.type === 'extension' }}drafting-compass{{ else if m.type === 'schema' }}code-branch{{ else if m.type === 'console'}}font{{ else if m.type === 'operation' }}plug{{ else }}tasks{{ fi }}"></i>{{ m.type | parttype }}{{ if m.type === 'extension' }}<span class="b mr5">@(extension:)</span>{{ fi }}{{ m.name | partvariables }}</div>
+						{{ end }}
+					{{ end }}
+				</script>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	PLUGIN('components', function(exports) {
+
+		var prevpath;
+
+		exports.reload = function() {
+			SET('?.search', '');
+			prevpath = null;
+		};
+
+		exports.find = function(el) {
+			var com = code.components[+el.attrd('index')];
+			EXEC('code/move', com.line, com.ch, com.lineto);
+		};
+
+		exports.open = function(el) {
+			var path = el.attrd('path');
+
+			if (code.editor.path === path) {
+				exports.find(el);
+				return;
+			}
+
+			PLUGIN('code').element.SETTER('tree', 'selectpath', path);
+
+			setTimeout2('codefileopen', function() {
+
+				if (code.editor.path !== path) {
+					code.componentsdb = code.componentsdb.remove('path', path);
+					AJAX('DELETE /api/projects/{id}/parts/'.arg(code.data), { path: path });
+					UPD('code.componentsdb');
+					return;
+				}
+
+				var editor = FIND('editor').editor;
+				editor.setCursor({ line: (+el.attrd('line')), ch: +el.attrd('ch') });
+				editor.focus();
+			}, 1000);
+		};
+
+		var rebind = function() {
+
+			if (code.editor.path === prevpath)
+				return;
+
+			var value = code.componentsdb || EMPTYARRAY;
+			var arr = [];
+			var reg = (/\/(components|public|views|themes\/views)\//);
+			var isclient = reg.test(code.editor.path);
+
+			for (var i = 0; i < value.length; i++) {
+				var item = value[i];
+				if (code.editor.path !== item.path && reg.test(item.path) === isclient) {
+					item.items = item.items.remove('type', 'route');
+					item.items.length && arr.push(item);
+				}
+			}
+
+			prevpath = code.editor.path;
+			SET('code.componentsall', arr);
+		};
+
+		WATCH('code.componentsdb', rebind, true);
+		WATCH('code.components', rebind, true);
+	});
+
+	Thelpers.partvariables = function(val) {
+		var index = val.indexOf('(');
+		if (index === -1)
+			return val;
+		return Thelpers.encode(val.substring(0, index)) + '<span>' + Thelpers.encode(val.substring(index)) + '</span>';
+	};
+
+	Thelpers.parttype = function(val) {
+		switch (val) {
+			case 'FUNC':
+			case 'MAIN':
+			case 'REPO':
+			case 'Thelpers':
+			case 'helper':
+			case 'console':
+				return '';
+		}
+		return '<b>{0}</b>'.format(Thelpers.encode(val));
+	};
+</script>
